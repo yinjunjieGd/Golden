@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能学习平台 - 主页</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    /* 基础样式重置 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #213547;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    #app {
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* 基础容器样式 */
+    .home-container {
+      position: relative;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* 科技背景效果 */
+    .tech-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      opacity: 0.3;
+    }
+
+    .grid-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .particles::before,
+    .particles::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(59, 130, 246, 0.5);
+      filter: blur(50px);
+    }
+
+    .particles::before {
+      top: 20%;
+      left: 10%;
+      width: 300px;
+      height: 300px;
+    }
+
+    .particles::after {
+      bottom: 20%;
+      right: 10%;
+      width: 250px;
+      height: 250px;
+    }
+
+    /* 导航栏样式 */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 5%;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .logo-icon {
+      font-size: 32px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+    }
+
+    .nav-item {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: all 0.3s ease;
+      position: relative;
+      padding: 5px 0;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      color: #60a5fa;
+    }
+
+    .nav-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    }
+
+    /* 英雄区域样式 */
+    .hero-section {
+      position: relative;
+      padding: 100px 5%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 80vh;
+      overflow: hidden;
+    }
+
+    .hero-content {
+      max-width: 600px;
+      text-align: center;
+      z-index: 1;
+    }
+
+    .hero-title {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+
+    .hero-gradient-text {
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 40px;
+    }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #60a5fa;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+    }
+
+    .hero-btn {
+      display: inline-block;
+      padding: 15px 40px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      color: white;
+      text-decoration: none;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .hero-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5);
+    }
+
+    .hero-decoration {
+      position: absolute;
+      top: 50%;
+      right: 10%;
+      transform: translateY(-50%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 0;
+    }
+
+    .decor-circle {
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0) 70%);
+      position: relative;
+      animation: pulse 8s infinite ease-in-out;
+    }
+
+    .decor-circle.small {
+      position: absolute;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(139, 92, 246, 0) 70%);
+      animation-delay: 2s;
+    }
+
+    .decor-circle.tiny {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0) 70%);
+      animation-delay: 4s;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.4;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.6;
+      }
+    }
+
+    /* 通用区块样式 */
+    .section {
+      padding: 100px 5%;
+      position: relative;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .section-icon {
+      font-size: 2.2rem;
+    }
+
+    .section-divider {
+      width: 100px;
+      height: 3px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      margin: 0 auto;
+      border-radius: 3px;
+    }
+
+    /* 课程区块样式 */
+    .courses-section {
+      background: rgba(15, 23, 42, 0.5);
+    }
+
+    .courses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .course-card {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 12px;
+      padding: 30px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .course-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 100%;
+      background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+    }
+
+    .course-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .course-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+
+    .course-title {
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+      color: #f1f5f9;
+    }
+
+    .course-progress {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      border-radius: 4px;
+      transition: width 1s ease;
+    }
+
+    .course-btn {
+      display: inline-block;
+      padding: 10px 25px;
+      background: rgba(59, 130, 246, 0.1);
+      color: #60a5fa;
+      text-decoration: none;
+      border-radius: 30px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .course-btn:hover {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: rgba(59, 130, 246, 0.5);
+    }
+
+    /* 答题区块样式 */
+    .quiz-section {
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    .quiz-preview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 50px;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .quiz-info h3 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #f1f5f9;
+    }
+
+    .quiz-preview-desc {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .quiz-features {
+      list-style: none;
+      margin-bottom: 30px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 1rem;
+    }
+
+    .feature-icon {
+      font-size: 1.2rem;
+      color: #60a5fa;
+      min-width: 24px;
+    }
+
+    .quiz-start-btn {
+      padding: 15px 40px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .quiz-start-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5);
+    }
+
+    .quiz-preview-image {
+      display: flex;
+      justify-content: center;
+    }
+
+    .quiz-mockup {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .mockup-header {
+      background: rgba(15, 23, 42, 0.8);
+      padding: 15px 20px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .mockup-dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #94a3b8;
+    }
+
+    .mockup-content {
+      padding: 30px;
+    }
+
+    .mockup-question {
+      font-size: 1.2rem;
+      margin-bottom: 25px;
+      color: #f1f5f9;
+      line-height: 1.5;
+    }
+
+    .mockup-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mockup-option {
+      padding: 12px 15px;
+      background: rgba(148, 163, 184, 0.1);
+      border-radius: 8px;
+      color: rgba(255, 255, 255, 0.7);
+      border: 1px solid transparent;
+    }
+
+    .mockup-option.selected {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #3b82f6;
+      color: #60a5fa;
+    }
+
+    /* 知识图谱区块样式 */
+    .knowledge-section {
+      background: rgba(15, 23, 42, 0.5);
+    }
+
+    .knowledge-preview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 50px;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .knowledge-graph {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .graph-node {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #3b82f6, #8b5cf6);
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+      animation: glow 3s infinite ease-in-out;
+    }
+
+    .graph-node.main-node {
+      width: 80px;
+      height: 80px;
+      animation-delay: 0s;
+    }
+
+    .graph-node.node-1 {
+      top: 30%;
+      left: 20%;
+      animation-delay: 0.5s;
+    }
+
+    .graph-node.node-2 {
+      top: 70%;
+      left: 25%;
+      animation-delay: 1s;
+    }
+
+    .graph-node.node-3 {
+      top: 20%;
+      right: 20%;
+      animation-delay: 1.5s;
+    }
+
+    .graph-node.node-4 {
+      top: 60%;
+      right: 25%;
+      animation-delay: 2s;
+    }
+
+    .graph-node.node-5 {
+      top: 80%;
+      right: 45%;
+      animation-delay: 2.5s;
+    }
+
+    @keyframes glow {
+      0%, 100% {
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+      }
+      50% {
+        box-shadow: 0 0 40px rgba(59, 130, 246, 0.8);
+      }
+    }
+
+    .graph-edge {
+      position: absolute;
+      width: 200px;
+      height: 2px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      transform-origin: left center;
+      transform: rotate(45deg);
+      top: 35%;
+      left: 35%;
+    }
+
+    .graph-edge.edge-1 {
+      transform: rotate(-45deg);
+      top: 65%;
+      left: 35%;
+    }
+
+    .graph-edge.edge-2 {
+      transform: rotate(-135deg);
+      top: 35%;
+      right: 35%;
+    }
+
+    .graph-edge.edge-3 {
+      transform: rotate(135deg);
+      top: 65%;
+      right: 35%;
+    }
+
+    .graph-edge.edge-4 {
+      transform: rotate(180deg);
+      top: 80%;
+      left: 35%;
+      width: 150px;
+    }
+
+    .graph-edge.edge-5 {
+      transform: rotate(0deg);
+      top: 80%;
+      left: 50%;
+      width: 150px;
+    }
+
+    .knowledge-info h3 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #f1f5f9;
+    }
+
+    .knowledge-desc {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .knowledge-features {
+      list-style: none;
+      margin-bottom: 30px;
+    }
+
+    .knowledge-btn {
+      padding: 15px 40px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .knowledge-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5);
+    }
+
+    /* 页脚样式 */
+    .footer {
+      background: rgba(15, 23, 42, 0.9);
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+      padding: 40px 5%;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+
+    .footer-link {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .footer-link:hover {
+      color: #60a5fa;
+    }
+
+    .footer-copyright {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.9rem;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 1024px) {
+      .quiz-preview,
+      .knowledge-preview {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      
+      .quiz-info,
+      .knowledge-info {
+        text-align: center;
+      }
+      
+      .quiz-features,
+      .knowledge-features {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 3rem;
+      }
+      
+      .hero-stats {
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      
+      .section-title {
+        font-size: 2rem;
+      }
+      
+      .nav-links {
+        display: none;
+      }
+      
+      .courses-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-title {
+        font-size: 2.5rem;
+      }
+      
+      .section {
+        padding: 60px 5%;
+      }
+      
+      .course-card,
+      .quiz-mockup {
+        padding: 20px;
+      }
+    }
+  </style>
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?407119d763a730fc49e032663c40363c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+</head>
+<body>
+  <div id="app">
+    <div class="home-container">
+      <!-- 科技风格背景效果 -->
+      <div class="tech-background">
+        <div class="grid-lines"></div>
+        <div class="particles"></div>
+      </div>
+
+      <!-- 导航栏 -->
+      <nav class="navbar">
+        <div class="logo">
+          <span class="logo-icon">📚</span>
+          <span class="logo-text">学习空间</span>
+        </div>
+        <div class="nav-links">
+          <a href="#courses" class="nav-item active">我的课程</a>
+          <a href="#quiz" class="nav-item">在线答题</a>
+          <a href="#knowledge" class="nav-item">知识图谱</a>
+        </div>
+      </nav>
+
+      <!-- 英雄区域 -->
+      <section class="hero-section">
+        <div class="hero-content">
+          <h1 class="hero-title">
+            <span class="hero-gradient-text">智能学习平台</span>
+          </h1>
+          <p class="hero-subtitle">探索知识的无限可能，提升自我的最佳伙伴</p>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <span class="stat-number">24</span>
+              <span class="stat-label">精品课程</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">1200+</span>
+              <span class="stat-label">互动题目</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">98%</span>
+              <span class="stat-label">用户好评</span>
+            </div>
+          </div>
+          <a href="#quiz" class="hero-btn">开始学习</a>
+        </div>
+        <!-- 科技装饰图形 -->
+        <div class="hero-decoration">
+          <div class="decor-circle"></div>
+          <div class="decor-circle small"></div>
+          <div class="decor-circle tiny"></div>
+        </div>
+      </section>
+
+      <!-- 我的课程 -->
+      <section id="courses" class="section courses-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <span class="section-icon">🎓</span>
+            我的课程
+          </h2>
+          <div class="section-divider"></div>
+        </div>
+        <div class="courses-grid">
+          <div class="course-card" v-for="(course, index) in courses" :key="index">
+            <div class="course-icon">{{ course.icon }}</div>
+            <h3 class="course-title">{{ course.title }}</h3>
+            <p class="course-progress">{{ course.progress }}%</p>
+            <div class="progress-bar">
+              <div class="progress-fill" :style="{ width: course.progress + '%' }"></div>
+            </div>
+            <a href="#" class="course-btn">继续学习</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- 在线答题 -->
+      <section id="quiz" class="section quiz-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <span class="section-icon">📝</span>
+            在线答题
+          </h2>
+          <div class="section-divider"></div>
+        </div>
+        <div class="quiz-preview">
+          <div class="quiz-info">
+            <h3 class="quiz-preview-title">测试你的知识掌握程度</h3>
+            <p class="quiz-preview-desc">通过答题巩固所学知识，即时反馈学习效果</p>
+            <ul class="quiz-features">
+              <li class="feature-item">
+                <span class="feature-icon">✅</span>
+                实时计分系统
+              </li>
+              <li class="feature-item">
+                <span class="feature-icon">📊</span>
+                详细的学习报告
+              </li>
+              <li class="feature-item">
+                <span class="feature-icon">⏱️</span>
+                答题时间记录
+              </li>
+            </ul>
+            <button class="quiz-start-btn" @click="goToQuiz">开始答题</button>
+          </div>
+          <div class="quiz-preview-image">
+            <div class="quiz-mockup">
+              <div class="mockup-header">
+                <div class="mockup-dots">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </div>
+              </div>
+              <div class="mockup-content">
+                <div class="mockup-question">Vue.js 是什么类型的框架?</div>
+                <div class="mockup-options">
+                  <div class="mockup-option selected">渐进式 JavaScript 框架</div>
+                  <div class="mockup-option">纯前端 CSS 框架</div>
+                  <div class="mockup-option">后端服务器框架</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 知识图谱 -->
+      <section id="knowledge" class="section knowledge-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <span class="section-icon">🧠</span>
+            知识图谱
+          </h2>
+          <div class="section-divider"></div>
+        </div>
+        <div class="knowledge-preview">
+          <div class="knowledge-graph">
+            <!-- 知识图谱可视化（简化版） -->
+            <div class="graph-node main-node"></div>
+            <div class="graph-node node-1"></div>
+            <div class="graph-node node-2"></div>
+            <div class="graph-node node-3"></div>
+            <div class="graph-node node-4"></div>
+            <div class="graph-node node-5"></div>
+            <div class="graph-edge"></div>
+            <div class="graph-edge edge-1"></div>
+            <div class="graph-edge edge-2"></div>
+            <div class="graph-edge edge-3"></div>
+            <div class="graph-edge edge-4"></div>
+            <div class="graph-edge edge-5"></div>
+          </div>
+          <div class="knowledge-info">
+            <h3 class="knowledge-title">可视化你的知识体系</h3>
+            <p class="knowledge-desc">通过知识图谱直观了解知识点之间的关联，构建完整的知识网络</p>
+            <ul class="knowledge-features">
+              <li class="feature-item">
+                <span class="feature-icon">🔗</span>
+                知识点关联展示
+              </li>
+              <li class="feature-item">
+                <span class="feature-icon">📈</span>
+                学习进度追踪
+              </li>
+              <li class="feature-item">
+                <span class="feature-icon">💡</span>
+                智能推荐学习路径
+              </li>
+            </ul>
+            <button class="knowledge-btn">探索图谱</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 页脚 -->
+      <footer class="footer">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <span class="logo-icon">📚</span>
+            <span class="logo-text">学习空间</span>
+          </div>
+          <div class="footer-links">
+            <a href="#courses" class="footer-link">课程</a>
+            <a href="#quiz" class="footer-link">答题</a>
+            <a href="#knowledge" class="footer-link">知识图谱</a>
+          </div>
+          <div class="footer-copyright">
+            © 2023 学习空间. 保留所有权利.
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref } = Vue
+
+    createApp({
+      setup() {
+        // 模拟课程数据
+        const courses = ref([
+          {
+            title: 'Vue.js 从入门到精通',
+            icon: '⚡',
+            progress: 65
+          },
+          {
+            title: 'JavaScript 高级编程',
+            icon: '🚀',
+            progress: 42
+          },
+          {
+            title: 'CSS 动画与过渡效果',
+            icon: '✨',
+            progress: 88
+          }
+        ]);
+
+        // 跳转到答题页面
+        const goToQuiz = () => {
+          // 在实际应用中，这里会使用路由跳转到答题页面
+          console.log('跳转到答题页面');
+          // 可以通过下面的代码跳转到之前创建的答题页面
+          // window.location.href = 'quiz-app.html';
+        };
+
+        return {
+          courses,
+          goToQuiz
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>
