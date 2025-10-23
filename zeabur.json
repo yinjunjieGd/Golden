@@ -1,0 +1,17 @@
+{
+  "$schema": "https://zeabur.com/schema.json",
+  "routes": [
+    {
+      "path": "/api/*",
+      "target": "http://learningservice.zeabur.internal:8080",
+      "changeOrigin": true
+    }
+  ],
+  "build": {
+    "command": "npm run build",
+    "outputDirectory": "dist"
+  },
+  "static": {
+    "fallback": "index.html"
+  }
+}
