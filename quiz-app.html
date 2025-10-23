@@ -391,13 +391,9 @@
 
     createApp({
       setup() {
-        // 环境配置：根据ENV变量设置接口地址
-        const ENV = null; // 设置为 'pro' 使用生产环境，null 或其他值使用开发环境
-        const API_BASE_URL = ENV === 'pro' 
-          ? 'http://learningservice.zeabur.internal:8080'
-          : 'http://localhost:8089';
+        // 接口地址配置
+        const API_BASE_URL = 'http://learningservice.zeabur.internal:8080';
         
-        console.log('当前环境:', ENV === 'pro' ? '生产环境' : '开发环境');
         console.log('接口地址:', API_BASE_URL);
 
         // 生成考试ID: userId + 时间戳 + 随机字符 (不超过30字节)
