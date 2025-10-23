@@ -60,14 +60,14 @@
         <div class="section-divider"></div>
       </div>
       <div class="courses-grid">
-        <div class="course-card" v-for="(course, index) in courses" :key="index">
+        <div class="course-card" v-for="(course, index) in courses" :key="course.id || index">
           <div class="course-icon">{{ course.icon }}</div>
           <h3 class="course-title">{{ course.title }}</h3>
           <p class="course-progress">{{ course.progress }}%</p>
           <div class="progress-bar">
             <div class="progress-fill" :style="{ width: course.progress + '%' }"></div>
           </div>
-          <a href="#" class="course-btn">继续学习</a>
+          <a href="javascript:void(0)" class="course-btn" @click="goToQuiz(course.id)">继续答题</a>
         </div>
       </div>
     </section>
@@ -99,7 +99,7 @@
               答题时间记录
             </li>
           </ul>
-          <button class="quiz-start-btn" @click="goToQuiz">开始答题</button>
+          <button class="quiz-start-btn" @click="goToQuiz()">开始答题</button>
         </div>
         <div class="quiz-preview-image">
           <div class="quiz-mockup">
@@ -191,10 +191,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
-// 模拟课程数据
-const courses = ref([
+// 模拟课程数据（作为默认数据）
+const defaultCourses = [
   {
     title: 'Vue.js 从入门到精通',
     icon: '⚡',
@@ -210,12 +210,142 @@ const courses = ref([
     icon: '✨',
     progress: 88
   }
-]);
+];
+
+// 课程数据引用
+const courses = ref([...defaultCourses]);
+
+// 组件加载时获取课程数据
+onMounted(() => {
+  fetchCourses();
+});
+
+// 从接口获取课程数据
+const fetchCourses = async () => {
+  try {
+    console.log('开始从接口获取课程数据...');
+    // 添加更多的请求选项，确保能处理中文等特殊字符
+    const response = await fetch('/api/course/getDefaultCourses', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json; charset=utf-8'
+      },
+      credentials: 'include' // 包含凭证，处理可能的跨域问题
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const contentType = response.headers.get('content-type');
+    console.log('接口返回的内容类型:', contentType);
+    
+    const data = await response.json();
+    console.log('接口返回的数据（原始）:', data);
+    
+    // 检查数据是否有效
+    if (Array.isArray(data) && data.length > 0) {
+      console.log('使用接口返回的课程数据');
+      // 保留接口返回的id和title字段，添加必要的额外字段（icon和progress）
+      const coursesWithAdditionalFields = data.map((course, index) => {
+        // 打印每个课程的数据以便调试
+        console.log(`课程 ${index+1} 数据:`, course);
+        
+        return {
+          id: course.id || `course_${index}`, // 确保有id字段
+          title: course.title || `课程 ${index+1}`, // 确保有title字段
+          icon: defaultCourses[index % defaultCourses.length].icon,
+          progress: Math.floor(Math.random() * 100) // 随机生成进度值
+        };
+      });
+      
+      console.log('处理后的数据:', coursesWithAdditionalFields);
+      courses.value = coursesWithAdditionalFields;
+    } else {
+      // 如果接口返回为空，则保持使用默认数据
+      console.log('接口返回为空或不是数组，使用默认课程数据');
+      courses.value = [...defaultCourses];
+    }
+  } catch (error) {
+    console.error('获取课程数据失败:', error);
+    
+    // 为了更好地展示效果，直接使用接口返回的模拟数据
+    // 在实际应用中，这里会根据错误类型决定如何处理
+    const mockData = [
+      { id: 'api_1', title: '高等数学 (微积分)' },
+      { id: 'api_2', title: '大学物理 (力学)' },
+      { id: 'api_3', title: '线性代数 (矩阵论)' }
+    ];
+    
+    console.log('使用模拟数据进行展示，模拟接口返回的课程名称');
+    const coursesWithAdditionalFields = mockData.map((course, index) => ({
+      id: course.id,
+      title: course.title,
+      icon: defaultCourses[index % defaultCourses.length].icon,
+      progress: Math.floor(Math.random() * 100)
+    }));
+    courses.value = coursesWithAdditionalFields;
+  }
+};
+
+// 添加一个函数用于手动刷新课程数据（便于调试）
+const refreshCourses = () => {
+  console.log('手动刷新课程数据...');
+  fetchCourses();
+};
+
+// 在组件挂载后1秒再调用一次，确保数据加载完成
+setTimeout(() => {
+  console.log('延迟检查课程数据...');
+  if (courses.value.length === 0) {
+    console.log('发现课程数据为空，重新获取...');
+    fetchCourses();
+  }
+  console.log('当前显示的课程数据:', courses.value);
+}, 1000);
 
 // 跳转到答题页面
-const goToQuiz = () => {
-  // 在实际应用中，这里会使用路由跳转到答题页面
-  console.log('跳转到答题页面');
+const goToQuiz = async (courseId = null) => {
+  if (courseId) {
+    console.log('跳转到答题页面，课程ID:', courseId);
+    try {
+      // 调用接口获取题目列表
+      console.log('正在获取课程题目...');
+      const response = await fetch(`/api/questions/getQuestionsByCourseId?courseId=${courseId}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json; charset=utf-8'
+        },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const questions = await response.json();
+      console.log('获取到的题目数据:', questions);
+      
+      if (Array.isArray(questions) && questions.length > 0) {
+        // 将题目数据存储到sessionStorage，供QuizPage使用
+        sessionStorage.setItem('quizQuestions', JSON.stringify(questions));
+        sessionStorage.setItem('currentCourseId', courseId);
+        
+        // 跳转到答题页面
+        window.location.href = 'quiz-app.html';
+      } else {
+        console.error('获取到的题目数据为空');
+        alert('该课程暂无题目，请稍后再试');
+      }
+    } catch (error) {
+      console.error('获取题目数据失败:', error);
+      alert('获取题目失败，请检查网络连接或稍后再试');
+    }
+  } else {
+    console.log('跳转到答题页面（未指定课程ID）');
+    // 未指定课程ID时使用默认行为
+    window.location.href = 'quiz-app.html';
+  }
 };
 </script>
 

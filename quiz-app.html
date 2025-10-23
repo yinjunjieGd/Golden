@@ -67,6 +67,17 @@
       color: #42b883;
     }
 
+    .question-type-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
     .question-text {
       font-size: 20px;
       margin-bottom: 25px;
@@ -125,11 +136,13 @@
     .action-buttons {
       display: flex;
       justify-content: center;
+      gap: 15px;
     }
 
     .submit-btn,
     .next-btn,
-    .restart-btn {
+    .restart-btn,
+    .end-btn {
       padding: 12px 30px;
       font-size: 16px;
       font-weight: 500;
@@ -163,6 +176,16 @@
 
     .next-btn:hover {
       background: #388e3c;
+      transform: translateY(-1px);
+    }
+
+    .end-btn {
+      background: #ff5252;
+      color: white;
+    }
+
+    .end-btn:hover {
+      background: #e53935;
       transform: translateY(-1px);
     }
 
@@ -240,29 +263,47 @@
 <body>
   <div id="app">
     <div class="quiz-container">
-      <h1 class="quiz-title">在线答题1</h1>
+      <h1 class="quiz-title">在线答题系统</h1>
       
-      <div v-if="currentQuestion" class="question-card">
+      <!-- 页面加载指示 -->
+      <div v-if="!mounted" style="text-align: center; padding: 40px;">
+        <p style="font-size: 18px; color: #666;">页面加载中...</p>
+      </div>
+      
+      <!-- 空状态提示 -->
+      <div v-else-if="questions.length === 0" class="question-card" style="text-align: center; padding: 40px;">
+        <h2 style="color: #666; margin-bottom: 20px;">暂无题目数据</h2>
+        <p style="color: #999; margin-bottom: 10px;">请从首页选择课程开始答题</p>
+        <p style="color: #999; font-size: 14px; margin-bottom: 20px;">（提示：如果您刚从首页跳转过来，请尝试刷新页面 Ctrl+R 或 F5）</p>
+        <button class="submit-btn" style="margin-top: 20px;" onclick="window.location.href='/'">
+          返回首页
+        </button>
+      </div>
+      
+      <div v-else-if="currentQuestion" class="question-card">
         <div class="question-header">
           <span class="question-number">问题 {{ currentIndex + 1 }}/{{ questions.length }}</span>
           <span class="score-display">得分: {{ score }}</span>
         </div>
         
-        <h2 class="question-text">{{ currentQuestion.question }}</h2>
+        <div class="question-type-badge">
+          {{ currentQuestion.type === 'single_choice' ? '单选题' : '多选题' }}
+        </div>
+        <h2 class="question-text">{{ currentQuestion.stem }}</h2>
         
         <div class="options-container">
           <button
-            v-for="(option, index) in currentQuestion.options"
-            :key="index"
+            v-for="(value, key) in currentQuestion.options"
+            :key="key"
             :class="[
               'option-btn',
-              selectedOption === index ? 'selected' : '',
-              submitted ? (index === currentQuestion.correctAnswer ? 'correct' : 'incorrect') : ''
+              isOptionSelected(key) ? 'selected' : '',
+              submitted ? (isCorrectOption(key) ? 'correct' : (isOptionSelected(key) ? 'incorrect' : '')) : ''
             ]"
             :disabled="submitted"
-            @click="selectOption(index)"
+            @click="selectOption(key)"
           >
-            {{ String.fromCharCode(65 + index) }}. {{ option }}
+            {{ key }}. {{ value }}
           </button>
         </div>
         
@@ -276,11 +317,17 @@
             提交答案
           </button>
           <button
-            v-if="submitted"
+            v-if="submitted && !isAutoSwitching"
             class="next-btn"
             @click="goToNextQuestion"
           >
             {{ currentIndex === questions.length - 1 ? '完成测验' : '下一题' }}
+          </button>
+          <button
+            class="end-btn"
+            @click="endQuiz"
+          >
+            立即结束
           </button>
         </div>
       </div>
@@ -302,78 +349,129 @@
   </div>
 
   <script>
-    const { createApp, ref, computed } = Vue
+    const { createApp, ref, computed, onMounted } = Vue
 
     createApp({
       setup() {
-        // 模拟题库数据
-        const questions = ref([
-          {
-            question: 'Vue.js 是什么类型的框架?',
-            options: [
-              '渐进式 JavaScript 框架',
-              '纯前端 CSS 框架',
-              '后端服务器框架',
-              '数据库框架'
-            ],
-            correctAnswer: 0
-          },
-          {
-            question: 'Vue 3 中组合式 API 的入口函数是什么?',
-            options: [
-              'setup()',
-              'init()',
-              'create()',
-              'start()'
-            ],
-            correctAnswer: 0
-          },
-          {
-            question: '以下哪个不是 Vue 的生命周期钩子?',
-            options: [
-              'onMounted',
-              'onBeforeUpdate',
-              'onComplete',
-              'onUnmounted'
-            ],
-            correctAnswer: 2
-          },
-          {
-            question: 'Vue 中的响应式数据是通过什么实现的?',
-            options: [
-              'Object.defineProperty',
-              'Proxy',
-              'ES6 装饰器',
-              '以上都不是'
-            ],
-            correctAnswer: 1
-          },
-          {
-            question: '在 Vue 3 中，以下哪个是新的组件类型?',
-            options: [
-              'Fragment',
-              'Teleport',
-              'Suspense',
-              '以上都是'
-            ],
-            correctAnswer: 3
+        // 生成考试ID: userId + 时间戳 + 随机字符 (不超过30字节)
+        const generateExamId = () => {
+          const userId = 1;
+          const timestamp = Date.now();
+          const randomStr = Math.random().toString(36).substring(2, 8);
+          const examId = `${userId}_${timestamp}_${randomStr}`;
+          // 确保不超过30字节
+          return examId.substring(0, 30);
+        };
+
+        // 创建考试记录
+        const createExamRecord = async () => {
+          console.log('📝 开始创建考试记录...');
+          try {
+            const examId = generateExamId();
+            console.log('生成的examId:', examId);
+            const now = new Date();
+            const examName = `在线答题_${now.toLocaleString('zh-CN')}`;
+            
+            const requestData = {
+              examId: examId,
+              examName: examName,
+              userId: 1,
+              startTime: now.toISOString(),
+              status: 2  // 默认状态为2,表示答题中
+            };
+            console.log('创建记录请求数据:', requestData);
+            
+            const response = await fetch('http://localhost:8089/api/answer-records/insert', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(requestData)
+            });
+
+            console.log('创建记录响应状态:', response.status);
+            if (response.ok) {
+              const result = await response.json();
+              console.log('✅ 考试记录创建成功:', result);
+              // 保存考试ID到sessionStorage，用于后续更新记录
+              sessionStorage.setItem('currentExamId', examId);
+              console.log('✅ examId已保存到sessionStorage:', examId);
+              console.log('验证sessionStorage:', sessionStorage.getItem('currentExamId'));
+              return examId;
+            } else {
+              console.error('❌ 创建考试记录失败，状态码:', response.status);
+              const errorText = await response.text();
+              console.error('错误详情:', errorText);
+            }
+          } catch (error) {
+            console.error('❌ 创建考试记录时发生错误:', error);
           }
-        ]);
+        };
+
+        // 从sessionStorage加载题目数据
+        const loadQuestionsFromStorage = () => {
+          try {
+            const storedQuestions = sessionStorage.getItem('quizQuestions');
+            console.log('sessionStorage中的原始数据:', storedQuestions);
+            if (storedQuestions) {
+              const parsedQuestions = JSON.parse(storedQuestions);
+              console.log('从sessionStorage加载的题目:', parsedQuestions);
+              console.log('题目数量:', parsedQuestions.length);
+              if (Array.isArray(parsedQuestions) && parsedQuestions.length > 0) {
+                return parsedQuestions;
+              }
+            }
+            console.warn('sessionStorage中没有有效的题目数据');
+          } catch (error) {
+            console.error('加载题目数据失败:', error);
+          }
+          // 如果没有数据或加载失败,返回空数组
+          return [];
+        };
+
+        const questions = ref(loadQuestionsFromStorage());
+        const mounted = ref(false);
 
         const currentIndex = ref(0);
+        // 单选题：字符串（如'A'）；多选题：数组（如['A', 'B']）
         const selectedOption = ref(null);
         const submitted = ref(false);
         const score = ref(0);
         const quizCompleted = ref(false);
         const startTime = ref(null);
         const timeSpent = ref(0);
+        const isAutoSwitching = ref(false); // 标记是否正在自动切换到下一题
         let timerInterval = null;
+
+        // 初始化selectedOption
+        if (questions.value.length > 0) {
+          selectedOption.value = questions.value[0].type === 'multiple_choice' ? [] : null;
+        }
 
         // 计算当前问题
         const currentQuestion = computed(() => {
           if (quizCompleted.value) return null;
           return questions.value[currentIndex.value];
         });
+
+        // 判断选项是否被选中
+        const isOptionSelected = (key) => {
+          if (currentQuestion.value.type === 'single_choice') {
+            return selectedOption.value === key;
+          } else {
+            return Array.isArray(selectedOption.value) && selectedOption.value.includes(key);
+          }
+        };
+
+        // 判断选项是否是正确答案
+        const isCorrectOption = (key) => {
+          const correctAnswer = currentQuestion.value.correctAnswer;
+          if (Array.isArray(correctAnswer)) {
+            return correctAnswer.includes(key);
+          } else {
+            return correctAnswer === key;
+          }
+        };
 
         // 开始计时
         const startTimer = () => {
@@ -392,19 +490,104 @@
         };
 
         // 选择答案
-        const selectOption = (index) => {
+        const selectOption = (key) => {
           if (!submitted.value) {
-            selectedOption.value = index;
+            if (currentQuestion.value.type === 'single_choice') {
+              // 单选题：直接设置选中的选项
+              selectedOption.value = key;
+            } else {
+              // 多选题：切换选项的选中状态
+              if (!Array.isArray(selectedOption.value)) {
+                selectedOption.value = [];
+              }
+              const index = selectedOption.value.indexOf(key);
+              if (index > -1) {
+                selectedOption.value.splice(index, 1);
+              } else {
+                selectedOption.value.push(key);
+              }
+            }
           }
         };
 
         // 提交答案
         const submitAnswer = () => {
-          if (selectedOption.value !== null) {
+          if (selectedOption.value !== null && 
+              (currentQuestion.value.type === 'single_choice' || 
+               (Array.isArray(selectedOption.value) && selectedOption.value.length > 0))) {
             submitted.value = true;
-            if (selectedOption.value === currentQuestion.value.correctAnswer) {
+            
+            const correctAnswer = currentQuestion.value.correctAnswer;
+            let isCorrect = false;
+            
+            if (currentQuestion.value.type === 'single_choice') {
+              // 单选题：直接比较
+              isCorrect = selectedOption.value === correctAnswer;
+            } else {
+              // 多选题：所选答案与正确答案完全一致
+              const selected = Array.isArray(selectedOption.value) ? selectedOption.value.sort() : [];
+              const correct = Array.isArray(correctAnswer) ? correctAnswer.sort() : [];
+              isCorrect = JSON.stringify(selected) === JSON.stringify(correct);
+            }
+            
+            if (isCorrect) {
               score.value++;
             }
+            
+            // 标记正在自动切换
+            isAutoSwitching.value = true;
+            
+            // 自动切换到下一题
+            setTimeout(() => {
+              isAutoSwitching.value = false;
+              goToNextQuestion();
+            }, 800); // 延迟800毫秒，让用户看到答案反馈
+          }
+        };
+
+        // 更新答题记录
+        const updateExamRecord = async () => {
+          console.log('📝 开始更新答题记录...');
+          try {
+            const examId = sessionStorage.getItem('currentExamId');
+            console.log('从sessionStorage获取的examId:', examId);
+            
+            if (!examId) {
+              console.error('❌ 未找到考试ID，无法更新答题记录');
+              console.log('sessionStorage内容:', sessionStorage);
+              return;
+            }
+
+            const now = new Date();
+            const updateData = {
+              examId: examId,
+              userId: 1,
+              endTime: now.toISOString(),
+              score: score.value,
+              totalQuestions: questions.value.length,
+              status: 1  // 1表示已完成
+            };
+            console.log('更新记录请求数据:', updateData);
+            
+            const response = await fetch('http://localhost:8089/api/answer-records/update', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(updateData)
+            });
+
+            console.log('更新记录响应状态:', response.status);
+            if (response.ok) {
+              const result = await response.json();
+              console.log('✅ 答题记录更新成功:', result);
+            } else {
+              console.error('❌ 更新答题记录失败，状态码:', response.status);
+              const errorText = await response.text();
+              console.error('错误详情:', errorText);
+            }
+          } catch (error) {
+            console.error('❌ 更新答题记录时发生错误:', error);
           }
         };
 
@@ -412,24 +595,40 @@
         const goToNextQuestion = () => {
           if (currentIndex.value < questions.value.length - 1) {
             currentIndex.value++;
-            selectedOption.value = null;
+            // 根据下一题的类型初始化selectedOption
+            const nextQuestion = questions.value[currentIndex.value];
+            selectedOption.value = nextQuestion.type === 'multiple_choice' ? [] : null;
             submitted.value = false;
           } else {
             // 完成测验
+            console.log('🎉 答题完成,准备调用更新接口');
             stopTimer();
             quizCompleted.value = true;
+            // 更新答题记录
+            console.log('即将调用updateExamRecord函数');
+            updateExamRecord();
+            console.log('updateExamRecord函数已调用');
           }
         };
 
         // 重新开始
         const restartQuiz = () => {
           currentIndex.value = 0;
-          selectedOption.value = null;
+          // 根据第一题的类型初始化selectedOption
+          selectedOption.value = questions.value.length > 0 && questions.value[0].type === 'multiple_choice' ? [] : null;
           submitted.value = false;
           score.value = 0;
           quizCompleted.value = false;
           timeSpent.value = 0;
           startTimer();
+        };
+
+        // 立即结束答题
+        const endQuiz = () => {
+          if (confirm('确定要结束答题并返回主页吗？')) {
+            stopTimer();
+            window.location.href = '/';
+          }
         };
 
         // 开始计时
@@ -438,19 +637,33 @@
         // 清理定时器
         window.addEventListener('beforeunload', stopTimer);
 
+        // 组件挂载完成
+        onMounted(() => {
+          mounted.value = true;
+          console.log('Vue应用已挂载');
+          console.log('当前题目数量:', questions.value.length);
+          // 创建考试记录
+          createExamRecord();
+        });
+
         return {
           questions,
+          mounted,
           currentIndex,
           selectedOption,
           submitted,
           score,
           quizCompleted,
           timeSpent,
+          isAutoSwitching,
           currentQuestion,
           selectOption,
           submitAnswer,
           goToNextQuestion,
-          restartQuiz
+          restartQuiz,
+          endQuiz,
+          isOptionSelected,
+          isCorrectOption
         }
       }
     }).mount('#app')

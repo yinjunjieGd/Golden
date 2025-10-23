@@ -8,21 +8,22 @@
         <span class="score-display">得分: {{ score }}</span>
       </div>
       
-      <h2 class="question-text">{{ currentQuestion.question }}</h2>
+      <h2 class="question-text">{{ currentQuestion.stem }}</h2>
+      <div class="question-type-badge">{{ currentQuestion.type === 'single_choice' ? '单选题' : '多选题' }}</div>
       
       <div class="options-container">
         <button
-          v-for="(option, index) in currentQuestion.options"
-          :key="index"
+          v-for="(key, index) in Object.keys(currentQuestion.options)"
+          :key="key"
           :class="[
             'option-btn',
-            selectedOption === index ? 'selected' : '',
-            submitted ? (index === currentQuestion.correctAnswer ? 'correct' : 'incorrect') : ''
+            isOptionSelected(key) ? 'selected' : '',
+            submitted ? (isCorrectOption(key) ? 'correct' : (isOptionSelected(key) ? 'incorrect' : '')) : ''
           ]"
           :disabled="submitted"
-          @click="selectOption(index)"
+          @click="selectOption(key)"
         >
-          {{ String.fromCharCode(65 + index) }}. {{ option }}
+          {{ key }}. {{ currentQuestion.options[key] }}
         </button>
       </div>
       
@@ -64,68 +65,61 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
-// 模拟题库数据
-const questions = ref([
-  {
-    question: 'Vue.js 是什么类型的框架?',
-    options: [
-      '渐进式 JavaScript 框架',
-      '纯前端 CSS 框架',
-      '后端服务器框架',
-      '数据库框架'
-    ],
-    correctAnswer: 0
-  },
-  {
-    question: 'Vue 3 中组合式 API 的入口函数是什么?',
-    options: [
-      'setup()',
-      'init()',
-      'create()',
-      'start()'
-    ],
-    correctAnswer: 0
-  },
-  {
-    question: '以下哪个不是 Vue 的生命周期钩子?',
-    options: [
-      'onMounted',
-      'onBeforeUpdate',
-      'onComplete',
-      'onUnmounted'
-    ],
-    correctAnswer: 2
-  },
-  {
-    question: 'Vue 中的响应式数据是通过什么实现的?',
-    options: [
-      'Object.defineProperty',
-      'Proxy',
-      'ES6 装饰器',
-      '以上都不是'
-    ],
-    correctAnswer: 1
-  },
-  {
-    question: '在 Vue 3 中，以下哪个是新的组件类型?',
-    options: [
-      'Fragment',
-      'Teleport',
-      'Suspense',
-      '以上都是'
-    ],
-    correctAnswer: 3
-  }
-]);
+// 题库数据（从接口获取或使用默认数据）
+const questions = ref([]);
 
 const currentIndex = ref(0);
-const selectedOption = ref(null);
+const selectedOption = ref(null); // 单选题：字符串（如'A'）；多选题：数组（如['A', 'B']）
 const submitted = ref(false);
 const score = ref(0);
 const quizCompleted = ref(false);
 const startTime = ref(null);
 const timeSpent = ref(0);
 let timerInterval = null;
+
+// 从sessionStorage加载题目数据
+const loadQuestions = () => {
+  try {
+    const storedQuestions = sessionStorage.getItem('quizQuestions');
+    if (storedQuestions) {
+      const parsedQuestions = JSON.parse(storedQuestions);
+      console.log('从sessionStorage加载的题目:', parsedQuestions);
+      questions.value = parsedQuestions;
+    } else {
+      console.log('未找到题目数据，使用默认题目');
+      // 使用默认题目
+      questions.value = [
+        {
+          questionId: 1,
+          stem: 'Vue.js 是什么类型的框架?',
+          type: 'single_choice',
+          options: {
+            'A': '渐进式 JavaScript 框架',
+            'B': '纯前端 CSS 框架',
+            'C': '后端服务器框架',
+            'D': '数据库框架'
+          },
+          correctAnswer: 'A'
+        },
+        {
+          questionId: 2,
+          stem: 'Vue 3 有哪些新特性？（多选）',
+          type: 'multiple_choice',
+          options: {
+            'A': 'Composition API',
+            'B': 'Teleport',
+            'C': 'Fragments',
+            'D': 'jQuery集成'
+          },
+          correctAnswer: ['A', 'B', 'C']
+        }
+      ];
+    }
+  } catch (error) {
+    console.error('加载题目数据失败:', error);
+    questions.value = [];
+  }
+};
 
 // 计算当前问题
 const currentQuestion = computed(() => {
@@ -149,18 +143,67 @@ const stopTimer = () => {
   }
 };
 
+// 判断选项是否被选中
+const isOptionSelected = (key) => {
+  if (currentQuestion.value.type === 'single_choice') {
+    return selectedOption.value === key;
+  } else {
+    return Array.isArray(selectedOption.value) && selectedOption.value.includes(key);
+  }
+};
+
+// 判断选项是否是正确答案
+const isCorrectOption = (key) => {
+  const correctAnswer = currentQuestion.value.correctAnswer;
+  if (Array.isArray(correctAnswer)) {
+    return correctAnswer.includes(key);
+  } else {
+    return correctAnswer === key;
+  }
+};
+
 // 选择答案
-const selectOption = (index) => {
+const selectOption = (key) => {
   if (!submitted.value) {
-    selectedOption.value = index;
+    if (currentQuestion.value.type === 'single_choice') {
+      // 单选题：直接设置选中的选项
+      selectedOption.value = key;
+    } else {
+      // 多选题：切换选项的选中状态
+      if (!Array.isArray(selectedOption.value)) {
+        selectedOption.value = [];
+      }
+      const index = selectedOption.value.indexOf(key);
+      if (index > -1) {
+        selectedOption.value.splice(index, 1);
+      } else {
+        selectedOption.value.push(key);
+      }
+    }
   }
 };
 
 // 提交答案
 const submitAnswer = () => {
-  if (selectedOption.value !== null) {
+  if (selectedOption.value !== null && 
+      (currentQuestion.value.type === 'single_choice' || 
+       (Array.isArray(selectedOption.value) && selectedOption.value.length > 0))) {
     submitted.value = true;
-    if (selectedOption.value === currentQuestion.value.correctAnswer) {
+    
+    // 判断答案是否正确
+    const correctAnswer = currentQuestion.value.correctAnswer;
+    let isCorrect = false;
+    
+    if (currentQuestion.value.type === 'single_choice') {
+      isCorrect = selectedOption.value === correctAnswer;
+    } else {
+      // 多选题：所选答案与正确答案完全一致
+      const selected = Array.isArray(selectedOption.value) ? selectedOption.value.sort() : [];
+      const correct = Array.isArray(correctAnswer) ? correctAnswer.sort() : [];
+      isCorrect = JSON.stringify(selected) === JSON.stringify(correct);
+    }
+    
+    if (isCorrect) {
       score.value++;
     }
   }
@@ -170,7 +213,9 @@ const submitAnswer = () => {
 const goToNextQuestion = () => {
   if (currentIndex.value < questions.value.length - 1) {
     currentIndex.value++;
-    selectedOption.value = null;
+    // 重置选项（根据题型初始化）
+    const nextQuestion = questions.value[currentIndex.value];
+    selectedOption.value = nextQuestion.type === 'multiple_choice' ? [] : null;
     submitted.value = false;
   } else {
     // 完成测验
@@ -182,7 +227,9 @@ const goToNextQuestion = () => {
 // 重新开始
 const restartQuiz = () => {
   currentIndex.value = 0;
-  selectedOption.value = null;
+  // 根据第一题的题型初始化
+  const firstQuestion = questions.value[0];
+  selectedOption.value = firstQuestion?.type === 'multiple_choice' ? [] : null;
   submitted.value = false;
   score.value = 0;
   quizCompleted.value = false;
@@ -192,6 +239,11 @@ const restartQuiz = () => {
 
 // 生命周期
 onMounted(() => {
+  loadQuestions();
+  // 根据第一题的题型初始化selectedOption
+  if (questions.value.length > 0) {
+    selectedOption.value = questions.value[0].type === 'multiple_choice' ? [] : null;
+  }
   startTimer();
 });
 
@@ -246,9 +298,20 @@ onUnmounted(() => {
 
 .question-text {
   font-size: 20px;
-  margin-bottom: 25px;
+  margin-bottom: 15px;
   color: #333;
   line-height: 1.5;
+}
+
+.question-type-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 20px;
 }
 
 .options-container {
