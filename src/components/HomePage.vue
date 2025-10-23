@@ -13,7 +13,8 @@
         <span class="logo-text">学习空间</span>
       </div>
       <div class="nav-links">
-        <a href="#courses" class="nav-item active">我的课程</a>
+        <a href="/" class="nav-item active">首页</a>
+        <a href="/my-courses.html" class="nav-item">我的课程</a>
         <a href="#quiz" class="nav-item">在线答题</a>
         <a href="#knowledge" class="nav-item">知识图谱</a>
       </div>

@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的课程 - 智能学习平台</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #213547;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+
+    #app {
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* 导航栏样式 */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 5%;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .logo-icon {
+      font-size: 32px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+    }
+
+    .nav-item {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: all 0.3s ease;
+      position: relative;
+      padding: 5px 0;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      color: #60a5fa;
+    }
+
+    .nav-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    }
+
+    /* 主容器 */
+    .courses-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 5%;
+    }
+
+    /* 页面标题 */
+    .page-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .page-title {
+      font-size: 3rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 15px;
+    }
+
+    .page-subtitle {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* 加载状态 */
+    .loading-container {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(59, 130, 246, 0.2);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 1.1rem;
+    }
+
+    /* 错误提示 */
+    .error-container {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .error-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+
+    .error-message {
+      color: #ef4444;
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+    }
+
+    .retry-btn {
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    /* 课程网格 */
+    .courses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    /* 课程卡片 */
+    .course-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 25px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .course-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .course-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(59, 130, 246, 0.5);
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+    }
+
+    .course-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .course-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .course-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .course-info {
+      flex: 1;
+    }
+
+    .course-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .course-meta {
+      display: flex;
+      gap: 15px;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .course-description {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .course-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .tag {
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+    }
+
+    .course-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 15px;
+      border-top: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .course-progress {
+      flex: 1;
+    }
+
+    .progress-label {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .progress-percent {
+      color: #60a5fa;
+      font-weight: 600;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      transition: width 0.6s ease;
+      border-radius: 3px;
+    }
+
+    .course-btn {
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-left: 15px;
+      white-space: nowrap;
+    }
+
+    .course-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    .empty-icon {
+      font-size: 5rem;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .empty-message {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .courses-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-title {
+        font-size: 2rem;
+      }
+
+      .nav-links {
+        gap: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+      <div class="logo">
+        <span class="logo-icon">📚</span>
+        <span class="logo-text">学习空间</span>
+      </div>
+      <div class="nav-links">
+        <a href="home-app.html" class="nav-item">首页</a>
+        <a href="my-courses.html" class="nav-item active">我的课程</a>
+        <a href="quiz-app.html" class="nav-item">在线答题</a>
+        <a href="#knowledge" class="nav-item">知识图谱</a>
+      </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <div class="courses-container">
+      <!-- 页面标题 -->
+      <div class="page-header">
+        <h1 class="page-title">我的课程</h1>
+        <p class="page-subtitle">探索知识的无限可能</p>
+      </div>
+
+      <!-- 加载状态 -->
+      <div v-if="loading" class="loading-container">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">加载课程中...</p>
+      </div>
+
+      <!-- 错误状态 -->
+      <div v-else-if="error" class="error-container">
+        <div class="error-icon">⚠️</div>
+        <p class="error-message">{{ error }}</p>
+        <button class="retry-btn" @click="loadCourses">重试</button>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-else-if="courses.length === 0" class="empty-state">
+        <div class="empty-icon">📚</div>
+        <p class="empty-message">暂无课程数据</p>
+      </div>
+
+      <!-- 课程列表 -->
+      <div v-else class="courses-grid">
+        <div 
+          v-for="course in courses" 
+          :key="course.id"
+          class="course-card"
+          @click="goToCourse(course.id)"
+        >
+          <div class="course-header">
+            <div class="course-icon">{{ getCourseIcon(course.name) }}</div>
+            <div class="course-info">
+              <h3 class="course-title">{{ course.name }}</h3>
+              <div class="course-meta">
+                <span class="meta-item">
+                  <span>📖</span>
+                  <span>{{ course.lessonCount || 0 }}课时</span>
+                </span>
+                <span class="meta-item">
+                  <span>⏱️</span>
+                  <span>{{ course.duration || '待定' }}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <p class="course-description" v-if="course.description">
+            {{ course.description }}
+          </p>
+
+          <div class="course-tags" v-if="course.tags && course.tags.length > 0">
+            <span class="tag" v-for="tag in course.tags" :key="tag">{{ tag }}</span>
+          </div>
+
+          <div class="course-footer">
+            <div class="course-progress">
+              <div class="progress-label">
+                <span>学习进度</span>
+                <span class="progress-percent">{{ course.progress || 0 }}%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" :style="{ width: (course.progress || 0) + '%' }"></div>
+              </div>
+            </div>
+            <button class="course-btn" @click.stop="startLearning(course.id)">
+              查看详情
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const courses = ref([]);
+        const loading = ref(true);
+        const error = ref(null);
+
+        // 课程图标映射
+        const courseIcons = {
+          'Java': '☕',
+          'Python': '🐍',
+          'JavaScript': '📜',
+          'C++': '⚡',
+          'Go': '🔷',
+          'Rust': '🦀',
+          'Vue': '💚',
+          'React': '⚛️',
+          'Angular': '🅰️',
+          'Node': '🟢',
+          'Database': '💾',
+          'Algorithm': '🧮',
+          'Design': '🎨',
+          'AI': '🤖',
+          'Machine Learning': '🧠',
+          'Cloud': '☁️',
+          'DevOps': '🔧',
+          'Security': '🔒',
+          'Mobile': '📱',
+          'Web': '🌐'
+        };
+
+        // 获取课程图标
+        const getCourseIcon = (courseName) => {
+          if (!courseName) return '📚';
+          
+          // 遍历图标映射，查找匹配的关键词
+          for (const [key, icon] of Object.entries(courseIcons)) {
+            if (courseName.toLowerCase().includes(key.toLowerCase())) {
+              return icon;
+            }
+          }
+          
+          // 默认图标
+          return '📚';
+        };
+
+        // 加载课程数据
+        const loadCourses = async () => {
+          loading.value = true;
+          error.value = null;
+
+          try {
+            console.log('开始获取课程数据...');
+            // 调用课程查询接口
+            const response = await fetch('/api/course/getDefaultCourses', {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json; charset=utf-8'
+              },
+              credentials: 'include'
+            });
+            
+            console.log('接口响应状态:', response.status);
+            console.log('响应头Content-Type:', response.headers.get('content-type'));
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error('接口返回错误内容:', errorText);
+              throw new Error(`HTTP 错误! 状态码: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('接口返回的课程数据:', data);
+            
+            // 后端直接返回数组
+            if (Array.isArray(data) && data.length > 0) {
+              // 为每个课程添加显示所需的字段
+              courses.value = data.map(course => ({
+                id: course.id,
+                name: course.title || course.name || '未命名课程',
+                lessonCount: course.lessonCount || Math.floor(Math.random() * 30) + 10,
+                duration: course.duration || `${Math.floor(Math.random() * 40) + 10}小时`,
+                progress: course.progress || Math.floor(Math.random() * 100),
+                tags: course.tags || ['在线课程'],
+                description: course.description || '暂无描述'
+              }));
+            } else if (Array.isArray(data)) {
+              // 返回空数组
+              courses.value = [];
+            } else {
+              throw new Error('接口返回的数据格式不正确');
+            }
+          } catch (err) {
+            console.error('加载课程失败:', err);
+            error.value = err.message || '加载课程数据失败，请稍后重试';
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        // 跳转到课程详情
+        const goToCourse = (courseId) => {
+          console.log('跳转到课程:', courseId);
+          // TODO: 实现跳转到课程详情页
+          // window.location.href = `course-detail.html?id=${courseId}`;
+        };
+
+        // 开始学习
+        const startLearning = (courseId) => {
+          console.log('开始学习课程:', courseId);
+          // TODO: 实现开始学习功能
+          // window.location.href = `quiz-app.html?courseId=${courseId}`;
+        };
+
+        // 组件挂载时加载课程
+        onMounted(() => {
+          loadCourses();
+        });
+
+        return {
+          courses,
+          loading,
+          error,
+          getCourseIcon,
+          loadCourses,
+          goToCourse,
+          startLearning
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
