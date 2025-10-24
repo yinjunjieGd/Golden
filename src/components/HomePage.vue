@@ -221,12 +221,16 @@ onMounted(() => {
   fetchCourses();
 });
 
+// API Base URL
+const API_BASE_URL = 'https://pm-feel666service.gaodun.com';
+
 // 从接口获取课程数据
 const fetchCourses = async () => {
   try {
     console.log('开始从接口获取课程数据...');
+    console.log('API Base URL:', API_BASE_URL);
     // 添加更多的请求选项，确保能处理中文等特殊字符
-    const response = await fetch('/api/course/getDefaultCourses', {
+    const response = await fetch(`${API_BASE_URL}/api/course/getDefaultCourses`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json; charset=utf-8'
@@ -312,7 +316,7 @@ const goToQuiz = async (courseId = null) => {
     try {
       // 调用接口获取题目列表
       console.log('正在获取课程题目...');
-      const response = await fetch(`/api/questions/getQuestionsByCourseId?courseId=${courseId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/questions/getQuestionsByCourseId?courseId=${courseId}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json; charset=utf-8'
