@@ -23,16 +23,26 @@ export default defineConfig(({ mode }) => {
           next()
         })
       },
-      // 生产环境:在构建时替换config.js中的占位符
-      generateBundle(options, bundle) {
-        // 查找config.js文件
-        const configFile = bundle['config.js']
-        if (configFile && configFile.type === 'asset') {
+      // 生产环境:在构建完成后替换config.js中的占位符
+      async closeBundle() {
+        const fs = await import('fs')
+        const path = await import('path')
+        const configPath = path.resolve(__dirname, 'dist/config.js')
+        
+        // 检查文件是否存在
+        if (fs.existsSync(configPath)) {
+          // 读取文件内容
+          let content = fs.readFileSync(configPath, 'utf-8')
           // 替换占位符
-          configFile.source = configFile.source.toString().replace(
+          content = content.replace(
             '__VITE_API_BASE_URL__',
             env.VITE_API_BASE_URL || ''
           )
+          // 写回文件
+          fs.writeFileSync(configPath, content, 'utf-8')
+          console.log('✅ config.js 环境变量替换成功:', env.VITE_API_BASE_URL || '(空字符串)')
+        } else {
+          console.warn('⚠️  未找到 dist/config.js 文件')
         }
       }
     }
