@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>在线答题应用</title>
+  <script src="/config.js"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <style>
     * {
@@ -391,8 +392,10 @@
 
     createApp({
       setup() {
-        // 接口地址配置 - 使用相对路径,通过代理转发
-        const API_BASE_URL = '';
+        // 接口地址配置 - 从全局配置读取
+        // 开发环境: 使用空字符串,通过Vite代理转发
+        // 生产环境: 使用.env.production中配置的后端域名
+        const API_BASE_URL = window.__APP_CONFIG__?.API_BASE_URL || '';
         
         console.log('接口地址:', API_BASE_URL || '使用相对路径');
 

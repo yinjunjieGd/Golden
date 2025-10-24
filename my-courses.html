@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>我的课程 - 智能学习平台</title>
+  <script src="/config.js"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <style>
     * {
@@ -471,6 +472,11 @@
 
     createApp({
       setup() {
+        // 接口地址配置 - 从全局配置读取
+        // 开发环境: 使用空字符串,通过Vite代理转发
+        // 生产环境: 使用.env.production中配置的后端域名
+        const API_BASE_URL = window.__APP_CONFIG__?.API_BASE_URL || '';
+        
         const courses = ref([]);
         const loading = ref(true);
         const error = ref(null);
@@ -522,7 +528,7 @@
           try {
             console.log('开始获取课程数据...');
             // 调用课程查询接口
-            const response = await fetch('/api/course/getDefaultCourses', {
+            const response = await fetch(`${API_BASE_URL}/api/course/getDefaultCourses`, {
               method: 'GET',
               headers: {
                 'Accept': 'application/json; charset=utf-8'
