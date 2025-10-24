@@ -17,7 +17,24 @@
       line-height: 1.6;
       color: #213547;
       min-height: 100vh;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      background: linear-gradient(135deg, #f0f4f8 0%, #e8eef5 100%);
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background-image: 
+        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.08) 0%, transparent 50%),
+        linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
     }
 
     #app {
@@ -31,25 +48,60 @@
       justify-content: space-between;
       align-items: center;
       padding: 20px 5%;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 1000;
+      background: linear-gradient(135deg, rgba(248, 250, 252, 0.95) 0%, rgba(241, 245, 249, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+      box-shadow: 0 2px 12px rgba(100, 116, 139, 0.08);
+    }
+
+    .navbar::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+      box-shadow: 0 1px 4px rgba(59, 130, 246, 0.2);
     }
 
     .logo {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 24px;
-      font-weight: bold;
-      color: white;
+      gap: 0.75rem;
+      text-decoration: none;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .logo:hover {
+      transform: translateY(-2px);
     }
 
     .logo-icon {
-      font-size: 32px;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+    }
+
+    .logo-icon svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .logo-text {
+      font-size: 1.375rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .nav-links {
@@ -58,26 +110,55 @@
     }
 
     .nav-item {
-      color: rgba(255, 255, 255, 0.7);
+      color: #64748b;
       text-decoration: none;
-      transition: all 0.3s ease;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.5rem;
       position: relative;
-      padding: 5px 0;
     }
 
-    .nav-item:hover,
-    .nav-item.active {
-      color: #60a5fa;
-    }
-
-    .nav-item.active::after {
+    .nav-item::before {
       content: '';
       position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      inset: 0;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      border-radius: 0.5rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: -1;
+    }
+
+    .nav-item:hover {
+      color: #667eea;
+      transform: translateY(-2px);
+    }
+
+    .nav-item:hover::before {
+      opacity: 0.1;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .nav-icon {
+      font-size: 1.125rem;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-item.active::before {
+      opacity: 0;
     }
 
     /* 主容器 */
@@ -90,22 +171,47 @@
     /* 页面标题 */
     .page-header {
       text-align: center;
-      margin-bottom: 50px;
+      margin-bottom: 3rem;
+      padding: 3rem;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25), 0 4px 12px rgba(139, 92, 246, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
     .page-title {
-      font-size: 3rem;
-      font-weight: bold;
-      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      margin-bottom: 15px;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+      position: relative;
+      z-index: 1;
     }
 
     .page-subtitle {
-      font-size: 1.2rem;
-      color: rgba(255, 255, 255, 0.7);
+      font-size: 1.125rem;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
     }
 
     /* 加载状态 */
@@ -151,19 +257,22 @@
     }
 
     .retry-btn {
-      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
       color: white;
       border: none;
-      padding: 12px 30px;
+      padding: 12px 32px;
       border-radius: 8px;
       font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
 
     .retry-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
     }
 
     /* 课程网格 */
@@ -176,14 +285,15 @@
 
     /* 课程卡片 */
     .course-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 16px;
-      padding: 25px;
-      transition: all 0.3s ease;
+      background: white;
+      border: 1px solid rgba(102, 126, 234, 0.15);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.3s;
       cursor: pointer;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.12), 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .course-card::before {
@@ -191,22 +301,20 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 4px;
-      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
+      width: 4px;
+      height: 0;
+      background: linear-gradient(180deg, #667eea, #764ba2);
+      transition: height 0.3s;
     }
 
     .course-card:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(59, 130, 246, 0.5);
-      transform: translateY(-5px);
-      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+      box-shadow: 0 12px 32px rgba(102, 126, 234, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08);
+      border-color: rgba(102, 126, 234, 0.4);
+      transform: translateY(-4px);
     }
 
     .course-card:hover::before {
-      transform: scaleX(1);
+      height: 100%;
     }
 
     .course-header {
@@ -217,15 +325,22 @@
     }
 
     .course-icon {
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, #3b82f6, #60a5fa);
-      border-radius: 12px;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #f472b6 100%);
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
+      font-size: 1.75rem;
       flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(96, 165, 250, 0.25);
+      transition: all 0.3s;
+    }
+
+    .course-card:hover .course-icon {
+      transform: scale(1.05) rotate(5deg);
+      box-shadow: 0 6px 16px rgba(96, 165, 250, 0.35);
     }
 
     .course-info {
@@ -233,31 +348,43 @@
     }
 
     .course-title {
-      font-size: 1.3rem;
+      font-size: 1.125rem;
       font-weight: 600;
-      color: white;
-      margin-bottom: 8px;
-      line-height: 1.3;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.75rem;
+      line-height: 1.4;
     }
 
     .course-meta {
       display: flex;
-      gap: 15px;
-      font-size: 0.9rem;
-      color: rgba(255, 255, 255, 0.6);
+      gap: 1rem;
+      margin-bottom: 0.75rem;
     }
 
     .meta-item {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 0.25rem;
+      font-size: 0.875rem;
+      color: #64748b;
+    }
+
+    .meta-icon {
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #3b82f6;
     }
 
     .course-description {
-      color: rgba(255, 255, 255, 0.7);
+      color: #64748b;
       font-size: 0.95rem;
+      margin-bottom: 1rem;
       line-height: 1.6;
-      margin-bottom: 20px;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
@@ -280,9 +407,6 @@
     }
 
     .course-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       padding-top: 15px;
       border-top: 1px solid rgba(148, 163, 184, 0.2);
     }
@@ -306,35 +430,71 @@
 
     .progress-bar {
       width: 100%;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
+      height: 0.5rem;
+      background: #f1f5f9;
+      border-radius: 9999px;
       overflow: hidden;
     }
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #3b82f6, #60a5fa);
-      transition: width 0.6s ease;
-      border-radius: 3px;
+      background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+      border-radius: 9999px;
+      transition: width 0.5s ease;
+      box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
     }
 
-    .course-btn {
-      background: linear-gradient(135deg, #3b82f6, #60a5fa);
-      color: white;
+    .course-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .action-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       border: none;
-      padding: 10px 20px;
+      padding: 10px 16px;
       border-radius: 8px;
-      font-size: 0.9rem;
+      font-weight: 600;
+      font-size: 0.875rem;
       cursor: pointer;
-      transition: all 0.3s ease;
-      margin-left: 15px;
+      transition: all 0.3s;
       white-space: nowrap;
+      position: relative;
+      z-index: 1;
     }
 
-    .course-btn:hover {
+    .btn-icon {
+      flex-shrink: 0;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .primary-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    }
+
+    .secondary-btn {
+      background: rgba(100, 116, 139, 0.1);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .secondary-btn:hover {
+      background: rgba(100, 116, 139, 0.15);
+      color: #cbd5e1;
+      border-color: rgba(148, 163, 184, 0.3);
+      transform: translateY(-1px);
     }
 
     /* 空状态 */
@@ -376,14 +536,40 @@
     <!-- 导航栏 -->
     <nav class="navbar">
       <div class="logo">
-        <span class="logo-icon">📚</span>
+        <span class="logo-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="url(#logoGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="url(#logoGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 6h7M9 10h7M9 14h5" stroke="url(#logoGradient)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </span>
         <span class="logo-text">学习空间</span>
       </div>
       <div class="nav-links">
-        <a href="home-app.html" class="nav-item">首页</a>
-        <a href="my-courses.html" class="nav-item active">我的课程</a>
-        <a href="quiz-app.html" class="nav-item">在线答题</a>
-        <a href="#knowledge" class="nav-item">知识图谱</a>
+        <a href="home-app.html" class="nav-item">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          首页
+        </a>
+        <a href="my-courses.html" class="nav-item active">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          我的课程
+        </a>
       </div>
     </nav>
 
@@ -410,7 +596,11 @@
 
       <!-- 空状态 -->
       <div v-else-if="courses.length === 0" class="empty-state">
-        <div class="empty-icon">📚</div>
+        <div class="empty-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
         <p class="empty-message">暂无课程数据</p>
       </div>
 
@@ -423,16 +613,21 @@
           @click="goToCourse(course.id)"
         >
           <div class="course-header">
-            <div class="course-icon">{{ getCourseIcon(course.name) }}</div>
+            <div class="course-icon" v-html="getCourseIcon(course.name)"></div>
             <div class="course-info">
               <h3 class="course-title">{{ course.name }}</h3>
               <div class="course-meta">
                 <span class="meta-item">
-                  <span>📖</span>
+                  <svg class="meta-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
                   <span>{{ course.lessonCount || 0 }}课时</span>
                 </span>
                 <span class="meta-item">
-                  <span>⏱️</span>
+                  <svg class="meta-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
                   <span>{{ course.duration || '待定' }}</span>
                 </span>
               </div>
@@ -457,8 +652,31 @@
                 <div class="progress-fill" :style="{ width: (course.progress || 0) + '%' }"></div>
               </div>
             </div>
-            <button class="course-btn" @click.stop="startLearning(course.id)">
-              查看详情
+          </div>
+          <div class="course-actions">
+            <button class="action-btn secondary-btn" @click.stop="viewKnowledgeGraph(course.id)">
+              <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="2" stroke="currentColor" stroke-width="2"/>
+                <circle cx="12" cy="5" r="2" stroke="currentColor" stroke-width="2"/>
+                <circle cx="12" cy="19" r="2" stroke="currentColor" stroke-width="2"/>
+                <circle cx="5" cy="12" r="2" stroke="currentColor" stroke-width="2"/>
+                <circle cx="19" cy="12" r="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 7v3m0 4v3m-5-5h3m4 0h3" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              知识图谱
+            </button>
+            <button class="action-btn secondary-btn" @click.stop="viewStudyPlan(course.id)">
+              <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M3 10h18M8 3v4m8-4v4" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              学习计划
+            </button>
+            <button class="action-btn primary-btn" @click.stop="startQuiz(course.id)">
+              <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              开始答题
             </button>
           </div>
         </div>
@@ -482,43 +700,44 @@
         const loading = ref(true);
         const error = ref(null);
 
-        // 课程图标映射
-        const courseIcons = {
-          'Java': '☕',
-          'Python': '🐍',
-          'JavaScript': '📜',
-          'C++': '⚡',
-          'Go': '🔷',
-          'Rust': '🦀',
-          'Vue': '💚',
-          'React': '⚛️',
-          'Angular': '🅰️',
-          'Node': '🟢',
-          'Database': '💾',
-          'Algorithm': '🧮',
-          'Design': '🎨',
-          'AI': '🤖',
-          'Machine Learning': '🧠',
-          'Cloud': '☁️',
-          'DevOps': '🔧',
-          'Security': '🔒',
-          'Mobile': '📱',
-          'Web': '🌐'
+        // SVG图标集合
+        const svgIcons = {
+          'Java': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 11V7a4 4 0 118 0v4M5 11h14l1 10H4l1-10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          'Python': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 20V10C8 7.79086 9.79086 6 12 6C14.2091 6 16 7.79086 16 10V20M8 20H16M8 20C6.89543 20 6 19.1046 6 18V10C6 5.58172 9.58172 2 14 2H18C19.1046 2 20 2.89543 20 4V16C20 17.1046 19.1046 18 18 18H16M16 20C17.1046 20 18 19.1046 18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+          'JavaScript': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          'C++': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          'Go': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M9 9h6v6H9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          'Rust': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          'Vue': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 3L12 20L19 3M7.5 3L12 13L16.5 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          'React': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="2" stroke="currentColor" stroke-width="2"/><path d="M12 10c5 0 9-1.79 9-4s-4-4-9-4-9 1.79-9 4 4 4 9 4zm0 4c5 0 9 1.79 9 4s-4 4-9 4-9-1.79-9-4 4-4 9-4z" stroke="currentColor" stroke-width="2"/></svg>',
+          'Angular': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L4 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-8-4z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          'Node': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v10m5-5H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+          'Database': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="12" cy="5" rx="9" ry="3" stroke="currentColor" stroke-width="2"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" stroke="currentColor" stroke-width="2"/></svg>',
+          'Algorithm': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/></svg>',
+          'Design': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 21a4 4 0 01-4-4V7a4 4 0 014-4h10a4 4 0 014 4v10a4 4 0 01-4 4H7zM7 3L17 13m0-10L7 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+          'AI': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          'Machine Learning': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          'Cloud': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          'DevOps': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          'Security': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2"/><path d="M12 17v-2m-5-4V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+          'Mobile': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="2" width="14" height="20" rx="2" stroke="currentColor" stroke-width="2"/><path d="M12 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+          'Web': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          'default': '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
         };
 
         // 获取课程图标
         const getCourseIcon = (courseName) => {
-          if (!courseName) return '📚';
+          if (!courseName) return svgIcons.default;
           
           // 遍历图标映射，查找匹配的关键词
-          for (const [key, icon] of Object.entries(courseIcons)) {
+          for (const [key, icon] of Object.entries(svgIcons)) {
             if (courseName.toLowerCase().includes(key.toLowerCase())) {
               return icon;
             }
           }
           
           // 默认图标
-          return '📚';
+          return svgIcons.default;
         };
 
         // 加载课程数据
@@ -585,11 +804,24 @@
           // window.location.href = `course-detail.html?id=${courseId}`;
         };
 
-        // 开始学习
-        const startLearning = (courseId) => {
-          console.log('开始学习课程:', courseId);
-          // TODO: 实现开始学习功能
-          // window.location.href = `quiz-app.html?courseId=${courseId}`;
+        // 查看知识图谱
+        const viewKnowledgeGraph = (courseId) => {
+          console.log('查看知识图谱:', courseId);
+          // TODO: 实现跳转到知识图谱页面
+          alert('知识图谱功能开发中...');
+        };
+
+        // 查看学习计划
+        const viewStudyPlan = (courseId) => {
+          console.log('查看学习计划:', courseId);
+          // TODO: 实现跳转到学习计划页面
+          alert('学习计划功能开发中...');
+        };
+
+        // 开始答题
+        const startQuiz = (courseId) => {
+          console.log('开始答题:', courseId);
+          window.location.href = `quiz-app.html?courseId=${courseId}`;
         };
 
         // 组件挂载时加载课程
@@ -604,7 +836,9 @@
           getCourseIcon,
           loadCourses,
           goToCourse,
-          startLearning
+          viewKnowledgeGraph,
+          viewStudyPlan,
+          startQuiz
         };
       }
     }).mount('#app');
