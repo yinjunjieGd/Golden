@@ -26,18 +26,9 @@
               <path d="M9 6h7M9 10h7M9 14h5" stroke="url(#logoGradient)" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
           </span>
-          <span class="logo-text">学习空间</span>
+          <span class="logo-text">Pathfinder</span>
         </div>
         <div class="nav-links">
-          <a href="/" class="nav-item active">
-            <span class="nav-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-            首页
-          </a>
           <a href="/my-courses.html" class="nav-item">
             <span class="nav-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -59,7 +50,7 @@
         <!-- 英雄区域 -->
         <section class="hero-section">
           <div class="hero-content">
-            <div class="hero-badge">欢迎来到学习空间</div>
+            <div class="hero-badge">欢迎来到Pathfinder</div>
             <h1 class="hero-title">开启您的学习之旅</h1>
             <p class="hero-subtitle">专业的在线学习平台,助您掌握核心知识</p>
             <div class="hero-stats">
@@ -76,7 +67,14 @@
                 <div class="stat-label">满意度</div>
               </div>
             </div>
-            <a href="#quiz" class="hero-btn">立即开始</a>
+          </div>
+          <div class="quiz-cta-container">
+            <a href="/my-courses.html" class="quiz-cta-btn">
+              立即开始
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
           </div>
         </section>
 
@@ -105,7 +103,6 @@
               <div class="progress-bar">
                 <div class="progress-fill" :style="{ width: course.progress + '%' }"></div>
               </div>
-              <button class="course-btn" @click="goToQuiz(course.id)">开始学习</button>
             </div>
           </div>
         </section>
@@ -156,7 +153,6 @@
                   </div>
                 </div>
               </div>
-              <button class="action-btn" @click="goToQuiz()">开始答题</button>
             </div>
             <div class="quiz-preview">
               <div class="preview-card">
@@ -246,7 +242,6 @@
                   </div>
                 </div>
               </div>
-              <button class="action-btn" @click="exploreKnowledgeGraph">探索知识图谱</button>
             </div>
           </div>
         </section>
@@ -1330,6 +1325,69 @@ const exploreKnowledgeGraph = () => {
 }
 
 
+
+/* 练习题目区域CTA容器样式 */
+.quiz-cta-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+/* 练习题目区域白色按钮样式 */
+.quiz-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: white;
+  color: #3b82f6;
+  border: 2px solid #3b82f6;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  position: relative;
+  z-index: 1;
+  text-decoration: none;
+}
+
+.quiz-cta-btn:hover {
+  background: #3b82f6;
+  color: white;
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
+}
+
+/* 英雄区域按钮样式 */
+.hero-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  position: relative;
+  z-index: 1;
+  margin: 1.5rem 0;
+  text-decoration: none;
+}
+
+.hero-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
+}
 
 /* 响应式设计 */
 @media (max-width: 1024px) {

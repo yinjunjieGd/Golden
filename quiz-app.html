@@ -473,28 +473,58 @@
           }
         };
 
-        // 从sessionStorage加载题目数据
-        const loadQuestionsFromStorage = () => {
-          try {
-            const storedQuestions = sessionStorage.getItem('quizQuestions');
-            console.log('sessionStorage中的原始数据:', storedQuestions);
-            if (storedQuestions) {
-              const parsedQuestions = JSON.parse(storedQuestions);
-              console.log('从sessionStorage加载的题目:', parsedQuestions);
-              console.log('题目数量:', parsedQuestions.length);
-              if (Array.isArray(parsedQuestions) && parsedQuestions.length > 0) {
-                return parsedQuestions;
-              }
-            }
-            console.warn('sessionStorage中没有有效的题目数据');
-          } catch (error) {
-            console.error('加载题目数据失败:', error);
-          }
-          // 如果没有数据或加载失败,返回空数组
-          return [];
+        // 从URL获取courseId参数
+        const getCourseIdFromUrl = () => {
+          const urlParams = new URLSearchParams(window.location.search);
+          const courseId = urlParams.get('courseId');
+          console.log('从URL获取的courseId:', courseId);
+          return courseId;
         };
 
-        const questions = ref(loadQuestionsFromStorage());
+        // 从后端API获取题目列表
+        const fetchQuestions = async (courseId) => {
+          try {
+            console.log('📡 开始获取题目列表, courseId:', courseId);
+            const apiUrl = `${API_BASE_URL}/api/questions/getQuestionsByCourseId?courseId=${courseId}`;
+            console.log('请求URL:', apiUrl);
+            
+            const response = await fetch(apiUrl);
+            console.log('响应状态:', response.status);
+            
+            if (response.ok) {
+              const data = await response.json();
+              console.log('✅ 题目数据获取成功:', data);
+              
+              if (Array.isArray(data) && data.length > 0) {
+                // 格式化题目数据
+                const formattedQuestions = data.map(q => ({
+                  id: q.id || q.questionId,
+                  questionId: q.id || q.questionId,
+                  courseId: q.courseId || courseId,
+                  type: q.type === 'single_choice' || q.type === '单选题' ? 'single_choice' : 'multiple_choice',
+                  stem: q.question || q.questionText || q.stem,
+                  options: q.options || [],
+                  correctAnswer: q.correctAnswer || q.answer
+                }));
+                console.log('格式化后的题目:', formattedQuestions);
+                return formattedQuestions;
+              } else {
+                console.warn('⚠️ 返回的题目数据为空或格式不正确');
+                return [];
+              }
+            } else {
+              console.error('❌ 获取题目失败，状态码:', response.status);
+              const errorText = await response.text();
+              console.error('错误详情:', errorText);
+              return [];
+            }
+          } catch (error) {
+            console.error('❌ 获取题目时发生错误:', error);
+            return [];
+          }
+        };
+
+        const questions = ref([]);
         const mounted = ref(false);
 
         const currentIndex = ref(0);
@@ -508,11 +538,6 @@
         const isAutoSwitching = ref(false); // 标记是否正在自动切换到下一题
         const questionStartTime = ref(null); // 记录当前题目的显示时间
         let timerInterval = null;
-
-        // 初始化selectedOption
-        if (questions.value.length > 0) {
-          selectedOption.value = questions.value[0].type === 'multiple_choice' ? [] : null;
-        }
 
         // 计算当前问题
         const currentQuestion = computed(() => {
@@ -789,16 +814,32 @@
         window.addEventListener('beforeunload', stopTimer);
 
         // 组件挂载完成
-        onMounted(() => {
+        onMounted(async () => {
+          console.log('🚀 Vue应用已挂载');
+          
+          // 从URL获取courseId并加载题目
+          const courseId = getCourseIdFromUrl();
+          if (courseId) {
+            console.log('准备加载课程题目, courseId:', courseId);
+            const loadedQuestions = await fetchQuestions(courseId);
+            questions.value = loadedQuestions;
+            console.log('题目加载完成，数量:', questions.value.length);
+            
+            // 初始化selectedOption
+            if (questions.value.length > 0) {
+              selectedOption.value = questions.value[0].type === 'multiple_choice' ? [] : null;
+              // 记录第一题的显示时间
+              questionStartTime.value = Date.now();
+            }
+          } else {
+            console.warn('⚠️ URL中未找到courseId参数');
+          }
+          
+          // 数据加载完成后设置mounted标志
           mounted.value = true;
-          console.log('Vue应用已挂载');
-          console.log('当前题目数量:', questions.value.length);
+          
           // 创建考试记录
           createExamRecord();
-          // 记录第一题的显示时间
-          if (questions.value.length > 0) {
-            questionStartTime.value = Date.now();
-          }
         });
 
         return {
