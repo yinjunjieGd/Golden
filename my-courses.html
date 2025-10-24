@@ -552,15 +552,6 @@
         <span class="logo-text">Pathfinder</span>
       </div>
       <div class="nav-links">
-        <a href="home-app.html" class="nav-item">
-          <span class="nav-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </span>
-          首页
-        </a>
         <a href="my-courses.html" class="nav-item active">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -690,7 +681,7 @@
     createApp({
       setup() {
         // 接口地址配置 - 硬编码
-        const API_BASE_URL = 'https://pm-feel666service.gaodun.com';
+        const API_BASE_URL = 'http://localhost:8089';
         
         console.log('=== API配置信息 ===');
         console.log('API_BASE_URL:', API_BASE_URL);
@@ -814,8 +805,8 @@
         // 查看学习计划
         const viewStudyPlan = (courseId) => {
           console.log('查看学习计划:', courseId);
-          // TODO: 实现跳转到学习计划页面
-          alert('学习计划功能开发中...');
+          // 调用全局方法显示学习计划模态框
+          window.showStudyPlanModal(courseId);
         };
 
         // 开始答题
@@ -864,6 +855,47 @@
           <img id="knowledgeGraphImage" src="" alt="知识图谱" style="display: none;">
         </div>
         <div id="errorContainer" class="error-message" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 学习计划模态框 -->
+  <div id="studyPlanModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">学习计划</h3>
+        <button id="closeStudyPlanModal" class="close-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-content">
+        <div id="studyPlanLoading" class="loading-indicator" style="display: none;">
+          <div class="loading-spinner"></div>
+          <p id="loadingMessage">正在定制学习计划，请稍后...</p>
+        </div>
+        <div id="studyPlanOptions" class="study-plan-options" style="display: none;">
+          <h4>选择操作</h4>
+          <p>请选择您想要执行的操作：</p>
+          <div class="options-buttons">
+            <button id="generateNewPlanBtn" class="action-btn primary-btn">生成新计划</button>
+            <button id="queryPlanBtn" class="action-btn secondary-btn">查询计划</button>
+          </div>
+        </div>
+        <div id="studyPlanContent" class="study-plan-content" style="display: none;">
+          <div class="plan-header">
+            <h4 id="courseName"></h4>
+            <div class="plan-summary">
+              <span id="totalDuration"></span>
+              <span id="totalPoints"></span>
+            </div>
+          </div>
+          <div class="plan-items">
+            <!-- 学习计划项将在这里动态生成 -->
+          </div>
+        </div>
+        <div id="studyPlanError" class="error-message" style="display: none;"></div>
       </div>
     </div>
   </div>
@@ -1003,7 +1035,483 @@
       width: 100%;
       text-align: center;
     }
+    
+    /* 学习计划样式 */
+    .study-plan-content {
+      width: 100%;
+      padding: 0;
+    }
+    
+    .plan-header {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    
+    .plan-header h4 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .plan-summary {
+      display: flex;
+      gap: 24px;
+    }
+    
+    .plan-summary span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    
+    .plan-items {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: 500px; /* 设置最大高度，确保所有数据都能显示 */
+      overflow-y: auto; /* 添加垂直滚动条 */
+      padding-right: 8px; /* 为滚动条留出空间 */
+    }
+    
+    /* 自定义滚动条样式 */
+    .plan-items::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .plan-items::-webkit-scrollbar-track {
+      background: rgba(148, 163, 184, 0.1);
+      border-radius: 4px;
+    }
+    
+    .plan-items::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.5);
+      border-radius: 4px;
+    }
+    
+    .plan-items::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.8);
+    }
+    
+    /* 学习计划选项样式 */
+    .study-plan-options {
+      width: 100%;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    
+    .study-plan-options h4 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 16px;
+    }
+    
+    .study-plan-options p {
+      color: #64748b;
+      margin-bottom: 32px;
+    }
+    
+    .options-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+    
+    /* 无学习计划提示样式 */
+    .no-plan-message {
+      text-align: center;
+      padding: 40px 20px;
+      color: #64748b;
+    }
+    
+    .no-plan-message h4 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+    
+    .plan-item {
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(248, 250, 252, 0.7);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .plan-item:hover {
+      background: rgba(248, 250, 252, 1);
+      border-color: rgba(148, 163, 184, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .plan-order {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+    
+    .plan-item-content {
+      flex: 1;
+    }
+    
+    .plan-item-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .plan-item-meta {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+    
+    .plan-item-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+    
+    .ai-comment {
+      font-size: 0.85rem;
+      color: #475569;
+      background: rgba(59, 130, 246, 0.05);
+      padding: 12px;
+      border-radius: 8px;
+      border-left: 3px solid #3b82f6;
+      margin-top: 8px;
+    }
+    
+    .ai-comment-label {
+      font-weight: 600;
+      color: #3b82f6;
+      margin-right: 6px;
+    }
   </style>
+  
+  <script>
+    // 学习计划模态框控制
+    document.addEventListener('DOMContentLoaded', () => {
+      const studyPlanModal = document.getElementById('studyPlanModal');
+      const closeStudyPlanModal = document.getElementById('closeStudyPlanModal');
+      const studyPlanLoading = document.getElementById('studyPlanLoading');
+      const studyPlanContent = document.getElementById('studyPlanContent');
+      const studyPlanError = document.getElementById('studyPlanError');
+      const studyPlanOptions = document.getElementById('studyPlanOptions');
+      const planItemsContainer = document.querySelector('.plan-items');
+      const courseNameElement = document.getElementById('courseName');
+      const totalDurationElement = document.getElementById('totalDuration');
+      const totalPointsElement = document.getElementById('totalPoints');
+      
+      // 关闭模态框
+      closeStudyPlanModal.addEventListener('click', () => {
+        studyPlanModal.style.display = 'none';
+      });
+      
+      // 点击模态框外部关闭
+      studyPlanModal.addEventListener('click', (e) => {
+        if (e.target === studyPlanModal) {
+          studyPlanModal.style.display = 'none';
+        }
+      });
+      
+      // 全局方法：显示学习计划
+      window.showStudyPlanModal = (courseId, userId = 1) => {
+        // 重置模态框状态
+        studyPlanContent.style.display = 'none';
+        studyPlanError.style.display = 'none';
+        studyPlanLoading.style.display = 'none';
+        studyPlanOptions.style.display = 'block';
+        studyPlanModal.style.display = 'flex';
+        planItemsContainer.innerHTML = '';
+      };
+      
+      // 生成新计划
+      const generateNewPlan = async (courseId, userId = 1) => {
+        // 重置模态框状态
+        studyPlanContent.style.display = 'none';
+        studyPlanError.style.display = 'none';
+        studyPlanOptions.style.display = 'none';
+        studyPlanLoading.style.display = 'flex';
+        document.getElementById('loadingMessage').textContent = '正在定制学习计划，请稍后...';
+        planItemsContainer.innerHTML = '';
+        
+        try {
+          // 将参数转换为整数类型
+          const userIdInt = parseInt(userId, 10);
+          const courseIdInt = parseInt(courseId, 10);
+          
+          const API_BASE_URL = 'https://pm-feel666service.gaodun.com';
+          const apiUrl = `${API_BASE_URL}/api/study-plan/generate`;
+          
+          console.log('📡 [API调用] 生成学习计划');
+          console.log('请求URL:', apiUrl);
+          console.log('原始参数:', { userId, courseId });
+          console.log('转换后参数:', { userId: userIdInt, courseId: courseIdInt });
+          console.log('参数类型:', { userIdType: typeof userIdInt, courseIdType: typeof courseIdInt });
+          
+          // 创建一个AbortController，设置较长的超时时间（10分钟）
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10 * 60 * 1000); // 10分钟超时
+          
+          // 调用学习计划接口 (POST方法)
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json; charset=utf-8',
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ userId: userIdInt, courseId: courseIdInt }), // 使用整数类型
+            signal: controller.signal
+          });
+          
+          // 清除超时定时器
+          clearTimeout(timeoutId);
+          
+          console.log('接口响应状态:', response.status);
+          
+          if (!response.ok) {
+            throw new Error(`生成学习计划失败，状态码: ${response.status}`);
+          }
+          
+          // 获取接口返回的学习计划数据
+          const data = await response.json();
+          
+          // 增加详细的接口返回结果输出
+          console.log('接口返回的学习计划数据:', data);
+          console.log('📊 数据类型:', typeof data);
+          console.log('📝 是否为数组:', Array.isArray(data));
+          
+          // 如果是数组，输出更多信息
+          if (Array.isArray(data)) {
+            console.log('📈 学习计划项数量:', data.length);
+            
+            // 如果有数据，输出第一条数据的结构作为示例
+            if (data.length > 0) {
+              console.log('🔍 第一条数据结构示例:', Object.keys(data[0]));
+              console.log('📋 第一条数据详情:', JSON.stringify(data[0], null, 2));
+            }
+          } else if (typeof data === 'object' && data !== null) {
+            // 如果是对象，输出对象的键
+            console.log('🔑 对象属性:', Object.keys(data));
+            console.log('📋 对象详情:', JSON.stringify(data, null, 2));
+          }
+          
+          // 记录响应数据的大小
+          const dataSize = new Blob([JSON.stringify(data)]).size;
+          console.log('📏 响应数据大小:', (dataSize / 1024).toFixed(2), 'KB');
+          
+          // 处理返回的数据
+          displayStudyPlanData(data);
+        } catch (err) {
+          console.error('生成学习计划失败:', err);
+          if (err.name === 'AbortError') {
+            studyPlanError.textContent = '生成学习计划超时，请稍后重试';
+          } else {
+            studyPlanError.textContent = err.message || '生成学习计划失败，请稍后重试';
+          }
+          studyPlanError.style.display = 'block';
+        } finally {
+          studyPlanLoading.style.display = 'none';
+        }
+      };
+      
+      // 查询计划
+      const queryStudyPlan = async (courseId, userId = 1) => {
+        // 重置模态框状态
+        studyPlanContent.style.display = 'none';
+        studyPlanError.style.display = 'none';
+        studyPlanOptions.style.display = 'none';
+        studyPlanLoading.style.display = 'flex';
+        document.getElementById('loadingMessage').textContent = '正在查询学习计划，请稍后...';
+        planItemsContainer.innerHTML = '';
+        
+        try {
+          // 将参数转换为整数类型
+          const userIdInt = parseInt(userId, 10);
+          const courseIdInt = parseInt(courseId, 10);
+          
+          const API_BASE_URL = 'https://pm-feel666service.gaodun.com';
+          const apiUrl = `${API_BASE_URL}/api/study-plan/query`;
+          
+          console.log('📡 [API调用] 查询学习计划');
+          console.log('请求URL:', apiUrl);
+          console.log('原始参数:', { userId, courseId });
+          console.log('转换后参数:', { userId: userIdInt, courseId: courseIdInt });
+          console.log('参数类型:', { userIdType: typeof userIdInt, courseIdType: typeof courseIdInt });
+          console.log('当前window.currentCourseIdForStudyPlan:', window.currentCourseIdForStudyPlan);
+          
+          // 创建一个AbortController，设置较长的超时时间（10分钟）
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10 * 60 * 1000); // 10分钟超时
+          
+          // 准备请求选项
+          const requestOptions = {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json; charset=utf-8',
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ userId: userIdInt, courseId: courseIdInt }), // 使用整数类型
+            signal: controller.signal
+          };
+          
+          console.log('请求选项:', requestOptions);
+          
+          // 调用学习计划接口 (POST方法)
+          const response = await fetch(apiUrl, requestOptions);
+          
+          // 清除超时定时器
+          clearTimeout(timeoutId);
+          
+          console.log('接口响应状态:', response.status);
+          console.log('响应头:', Object.fromEntries(response.headers.entries()));
+          
+          if (!response.ok) {
+            // 尝试获取详细的错误信息
+            try {
+              const errorData = await response.text();
+              console.error('接口返回的错误详情:', errorData);
+              throw new Error(`查询学习计划失败，状态码: ${response.status}, 错误详情: ${errorData}`);
+            } catch (innerErr) {
+              throw new Error(`查询学习计划失败，状态码: ${response.status}, 无法解析错误详情`);
+            }
+          }
+          
+          // 获取接口返回的学习计划数据
+          const data = await response.json();
+          console.log('接口返回的学习计划数据:', data);
+          
+          // 处理返回的数据
+          if (!data || (Array.isArray(data) && data.length === 0)) {
+            // 没有学习计划数据
+            planItemsContainer.innerHTML = `
+              <div class="no-plan-message">
+                <h4>当前无学习计划</h4>
+                <p>您可以点击"生成新计划"按钮创建一个学习计划。</p>
+              </div>
+            `;
+            studyPlanContent.style.display = 'block';
+          } else {
+            displayStudyPlanData(data);
+          }
+        } catch (err) {
+          console.error('查询学习计划失败:', err);
+          if (err.name === 'AbortError') {
+            studyPlanError.textContent = '查询学习计划超时，请稍后重试';
+          } else {
+            studyPlanError.textContent = err.message || '查询学习计划失败，请稍后重试';
+          }
+          studyPlanError.style.display = 'block';
+        } finally {
+          studyPlanLoading.style.display = 'none';
+        }
+      };
+      
+      // 显示学习计划数据
+      const displayStudyPlanData = (data) => {
+        if (data && Array.isArray(data)) {
+          // 按learningOrder排序
+          const sortedPlanItems = data.sort((a, b) => a.learningOrder - b.learningOrder);
+          
+          // 计算总学习时长
+          const totalDuration = sortedPlanItems.reduce((sum, item) => sum + (item.studyDuration || 0), 0);
+          
+          // 更新模态框标题和统计信息
+          courseNameElement.textContent = `课程学习计划`;
+          totalDurationElement.textContent = `总学习时长: ${totalDuration.toFixed(1)}小时`;
+          totalPointsElement.textContent = `知识点数量: ${sortedPlanItems.length}`;
+          
+          // 生成学习计划项
+          sortedPlanItems.forEach((item, index) => {
+            const planItem = document.createElement('div');
+            planItem.className = 'plan-item';
+            
+            // 格式化学习时长
+            const durationText = item.studyDuration ? `${item.studyDuration.toFixed(1)}小时` : '待定';
+            
+            planItem.innerHTML = `
+              <div class="plan-order">${index + 1}</div>
+              <div class="plan-item-content">
+                <div class="plan-item-title">
+                  <span>${item.knowledgePointName || '未命名知识点'}</span>
+                  <span class="study-duration">${durationText}</span>
+                </div>
+                <div class="plan-item-meta">
+                  <span>优先级: ${item.learningOrder || (index + 1)}</span>
+                </div>
+                ${item.aiComment ? `
+                  <div class="ai-comment">
+                    <span class="ai-comment-label">AI建议:</span>
+                    ${item.aiComment}
+                  </div>
+                ` : ''}
+              </div>
+            `;
+            
+            planItemsContainer.appendChild(planItem);
+          });
+          
+          // 显示学习计划内容
+          studyPlanContent.style.display = 'block';
+        } else {
+          throw new Error('返回的数据格式不正确，学习计划为空');
+        }
+      };
+      
+      // 绑定按钮事件
+      document.getElementById('generateNewPlanBtn').addEventListener('click', () => {
+        // 从当前课程卡片获取courseId
+        const courseId = window.currentCourseIdForStudyPlan || 1;
+        generateNewPlan(courseId);
+      });
+      
+      document.getElementById('queryPlanBtn').addEventListener('click', () => {
+        // 从当前课程卡片获取courseId
+        const courseId = window.currentCourseIdForStudyPlan || 1;
+        queryStudyPlan(courseId);
+      });
+      
+      // 修改全局方法showStudyPlanModal，保存当前courseId
+      const originalShowStudyPlanModal = window.showStudyPlanModal;
+      window.showStudyPlanModal = (courseId, userId = 1) => {
+        // 保存当前课程ID
+        window.currentCourseIdForStudyPlan = courseId;
+        // 调用原始方法
+        originalShowStudyPlanModal(courseId, userId);
+      };
+      
+      console.log('学习计划模态框初始化完成');
+    });
+  </script>
   
   <script>
     // 知识图谱模态框控制
@@ -1028,7 +1536,7 @@
       });
       
       // 全局方法：显示知识图谱
-      window.showKnowledgeGraph = async (courseId, userId = '1') => {
+      window.showKnowledgeGraph = async (courseId, userId = 1) => {
         // 重置模态框状态
         graphImage.style.display = 'none';
         errorContainer.style.display = 'none';
@@ -1039,9 +1547,12 @@
           const API_BASE_URL = 'https://pm-feel666service.gaodun.com';
           const apiUrl = `${API_BASE_URL}/api/study-plan/knowledge-pic`;
           
+          // 确保userId是数字类型
+          const numericUserId = parseInt(userId, 10);
+          
           console.log('📡 [API调用] 获取知识图谱');
           console.log('请求URL:', apiUrl);
-          console.log('参数:', { userId, courseId });
+          console.log('参数:', { userId: numericUserId, courseId });
           
           // 调用知识图谱接口 (POST方法)
           const response = await fetch(apiUrl, {
@@ -1051,7 +1562,7 @@
               'Content-Type': 'application/json'
             },
             credentials: 'include',
-            body: JSON.stringify({ userId, courseId })
+            body: JSON.stringify({ userId: numericUserId, courseId })
           });
           
           console.log('接口响应状态:', response.status);
@@ -1060,17 +1571,23 @@
             throw new Error(`获取知识图谱失败，状态码: ${response.status}`);
           }
           
-          // 假设接口返回的是一个JSON对象，包含base64编码的图片
-          const data = await response.json();
-          console.log('接口返回的数据:', data);
+          // 接口返回的是String类型的图片base64编码
+          const imageBase64 = await response.text();
+          console.log('接口返回的数据类型:', typeof imageBase64);
+          console.log('接口返回的数据长度:', imageBase64.length);
           
-          // 检查返回数据是否包含图片的base64编码
-          if (data && data.imageBase64) {
+          // 检查返回数据是否有效
+          if (imageBase64 && typeof imageBase64 === 'string' && imageBase64.length > 0) {
             // 创建图片URL并显示
-            graphImage.src = `data:image/png;base64,${data.imageBase64}`;
+            // 确保base64编码没有前缀，如果有则移除
+            let cleanBase64 = imageBase64;
+            if (cleanBase64.startsWith('data:image')) {
+              cleanBase64 = cleanBase64.substring(cleanBase64.indexOf(',') + 1);
+            }
+            graphImage.src = `data:image/png;base64,${cleanBase64}`;
             graphImage.style.display = 'block';
           } else {
-            throw new Error('返回的数据格式不正确，缺少图片信息');
+            throw new Error('返回的数据无效，不是有效的图片base64编码');
           }
         } catch (err) {
           console.error('加载知识图谱失败:', err);

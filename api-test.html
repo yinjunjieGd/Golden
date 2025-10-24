@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API调用测试工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #666;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            color: #4CAF50;
+            border-bottom: 2px solid #4CAF50;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+    <!-- 百度统计代码 -->
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?407119d763a730fc49e032663c40363c";
+          var s = document.getElementsByTagName("script")[0]; 
+          s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>API调用测试工具</h1>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="openTab(event, 'queryStudyPlan')">查询学习计划</button>
+            <button class="tab" onclick="openTab(event, 'generateStudyPlan')">生成学习计划</button>
+            <button class="tab" onclick="openTab(event, 'compareRequests')">请求对比</button>
+        </div>
+        
+        <!-- 查询学习计划 -->
+        <div id="queryStudyPlan" class="tab-content active">
+            <div class="form-group">
+                <label for="queryUserId">用户ID:</label>
+                <input type="text" id="queryUserId" value="1">
+            </div>
+            <div class="form-group">
+                <label for="queryCourseId">课程ID:</label>
+                <input type="text" id="queryCourseId" value="1">
+            </div>
+            <button onclick="testQueryStudyPlan()">测试查询学习计划</button>
+        </div>
+        
+        <!-- 生成学习计划 -->
+        <div id="generateStudyPlan" class="tab-content">
+            <div class="form-group">
+                <label for="generateUserId">用户ID:</label>
+                <input type="text" id="generateUserId" value="1">
+            </div>
+            <div class="form-group">
+                <label for="generateCourseId">课程ID:</label>
+                <input type="text" id="generateCourseId" value="1">
+            </div>
+            <button onclick="testGenerateStudyPlan()">测试生成学习计划</button>
+        </div>
+        
+        <!-- 请求对比 -->
+        <div id="compareRequests" class="tab-content">
+            <div class="form-group">
+                <label for="postmanRequest">Postman请求（JSON格式）:</label>
+                <textarea id="postmanRequest" rows="10" style="width: 100%;">{
+  "method": "POST",
+  "url": "http://localhost:8089/api/study-plan/query",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "userId": "1",
+    "courseId": "1"
+  }
+}</textarea>
+            </div>
+            <button onclick="compareWithPostman()">对比浏览器与Postman请求</button>
+        </div>
+        
+        <div class="result" id="result">
+            结果将显示在这里...
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE_URL = 'https://pm-feel666service.gaodun.com';
+        
+        function openTab(evt, tabName) {
+            // 隐藏所有标签内容
+            const tabContent = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContent.length; i++) {
+                tabContent[i].classList.remove("active");
+            }
+            
+            // 移除所有标签的active类
+            const tabLinks = document.getElementsByClassName("tab");
+            for (let i = 0; i < tabLinks.length; i++) {
+                tabLinks[i].classList.remove("active");
+            }
+            
+            // 显示当前标签内容并标记为active
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+        
+        function log(message) {
+            const resultElement = document.getElementById('result');
+            resultElement.textContent += message + '\n';
+            resultElement.scrollTop = resultElement.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('result').textContent = '';
+        }
+        
+        async function testQueryStudyPlan() {
+            clearLog();
+            log('开始测试查询学习计划接口...');
+            
+            const userId = document.getElementById('queryUserId').value;
+            const courseId = document.getElementById('queryCourseId').value;
+            
+            log(`用户ID: ${userId}`);
+            log(`课程ID: ${courseId}`);
+            
+            try {
+                const apiUrl = `${API_BASE_URL}/api/study-plan/query`;
+                log(`请求URL: ${apiUrl}`);
+                
+                // 准备请求参数
+                const requestData = {
+                    userId: userId,
+                    courseId: courseId
+                };
+                log(`请求参数: ${JSON.stringify(requestData, null, 2)}`);
+                
+                // 准备请求选项
+                const requestOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json; charset=utf-8',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(requestData)
+                };
+                log(`请求选项: ${JSON.stringify(requestOptions, null, 2)}`);
+                
+                // 记录请求发送时间
+                const startTime = new Date().getTime();
+                log(`开始发送请求: ${new Date().toLocaleString()}`);
+                
+                // 发送请求
+                const response = await fetch(apiUrl, requestOptions);
+                
+                // 记录请求完成时间
+                const endTime = new Date().getTime();
+                log(`请求完成时间: ${new Date().toLocaleString()}`);
+                log(`请求耗时: ${endTime - startTime}ms`);
+                
+                log(`响应状态码: ${response.status}`);
+                log(`响应状态文本: ${response.statusText}`);
+                
+                // 获取响应头
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+                log(`响应头: ${JSON.stringify(headers, null, 2)}`);
+                
+                if (!response.ok) {
+                    // 获取错误详情
+                    try {
+                        const errorText = await response.text();
+                        log(`错误响应内容: ${errorText}`);
+                        log(`请求失败: 状态码 ${response.status}`);
+                    } catch (e) {
+                        log(`请求失败: 状态码 ${response.status}，无法解析错误内容`);
+                    }
+                    return;
+                }
+                
+                // 尝试解析JSON响应
+                try {
+                    const data = await response.json();
+                    log(`响应数据: ${JSON.stringify(data, null, 2)}`);
+                    log('请求成功！');
+                } catch (e) {
+                    log(`解析JSON失败: ${e.message}`);
+                    // 尝试获取原始文本
+                    const text = await response.text();
+                    log(`原始响应内容: ${text}`);
+                }
+            } catch (error) {
+                log(`请求抛出异常: ${error.message}`);
+                log(`异常详情: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
+            }
+        }
+        
+        async function testGenerateStudyPlan() {
+            clearLog();
+            log('开始测试生成学习计划接口...');
+            
+            const userId = document.getElementById('generateUserId').value;
+            const courseId = document.getElementById('generateCourseId').value;
+            
+            log(`用户ID: ${userId}`);
+            log(`课程ID: ${courseId}`);
+            
+            try {
+                const apiUrl = `${API_BASE_URL}/api/study-plan/generate`;
+                log(`请求URL: ${apiUrl}`);
+                
+                // 准备请求参数
+                const requestData = {
+                    userId: userId,
+                    courseId: courseId
+                };
+                log(`请求参数: ${JSON.stringify(requestData, null, 2)}`);
+                
+                // 准备请求选项
+                const requestOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json; charset=utf-8',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(requestData)
+                };
+                log(`请求选项: ${JSON.stringify(requestOptions, null, 2)}`);
+                
+                // 记录请求发送时间
+                const startTime = new Date().getTime();
+                log(`开始发送请求: ${new Date().toLocaleString()}`);
+                
+                // 发送请求
+                const response = await fetch(apiUrl, requestOptions);
+                
+                // 记录请求完成时间
+                const endTime = new Date().getTime();
+                log(`请求完成时间: ${new Date().toLocaleString()}`);
+                log(`请求耗时: ${endTime - startTime}ms`);
+                
+                log(`响应状态码: ${response.status}`);
+                log(`响应状态文本: ${response.statusText}`);
+                
+                // 获取响应头
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+                log(`响应头: ${JSON.stringify(headers, null, 2)}`);
+                
+                if (!response.ok) {
+                    // 获取错误详情
+                    try {
+                        const errorText = await response.text();
+                        log(`错误响应内容: ${errorText}`);
+                        log(`请求失败: 状态码 ${response.status}`);
+                    } catch (e) {
+                        log(`请求失败: 状态码 ${response.status}，无法解析错误内容`);
+                    }
+                    return;
+                }
+                
+                // 尝试解析JSON响应
+                try {
+                    const data = await response.json();
+                    log(`响应数据: ${JSON.stringify(data, null, 2)}`);
+                    log('请求成功！');
+                } catch (e) {
+                    log(`解析JSON失败: ${e.message}`);
+                    // 尝试获取原始文本
+                    const text = await response.text();
+                    log(`原始响应内容: ${text}`);
+                }
+            } catch (error) {
+                log(`请求抛出异常: ${error.message}`);
+                log(`异常详情: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
+            }
+        }
+        
+        function compareWithPostman() {
+            clearLog();
+            log('开始对比浏览器与Postman请求...');
+            
+            try {
+                // 获取用户输入的Postman请求信息
+                const postmanRequestStr = document.getElementById('postmanRequest').value;
+                const postmanRequest = JSON.parse(postmanRequestStr);
+                
+                log('Postman请求信息:');
+                log(`方法: ${postmanRequest.method}`);
+                log(`URL: ${postmanRequest.url}`);
+                log(`请求头: ${JSON.stringify(postmanRequest.headers, null, 2)}`);
+                log(`请求体: ${JSON.stringify(postmanRequest.body, null, 2)}`);
+                
+                // 构建浏览器请求选项
+                const browserRequest = {
+                    method: postmanRequest.method || 'POST',
+                    url: postmanRequest.url || `${API_BASE_URL}/api/study-plan/query`,
+                    headers: {
+                        'Accept': 'application/json; charset=utf-8',
+                        'Content-Type': 'application/json',
+                        ...postmanRequest.headers
+                    },
+                    credentials: 'include',
+                    body: postmanRequest.body
+                };
+                
+                log('\n浏览器请求信息:');
+                log(`方法: ${browserRequest.method}`);
+                log(`URL: ${browserRequest.url}`);
+                log(`请求头: ${JSON.stringify(browserRequest.headers, null, 2)}`);
+                log(`请求体: ${JSON.stringify(browserRequest.body, null, 2)}`);
+                log('\n关键差异点:');
+                log('1. 浏览器请求包含credentials: \'include\'，而Postman通常不使用这个设置');
+                log('2. 浏览器可能会自动添加一些额外的请求头，如Origin, Referer等');
+                log('3. 浏览器受到跨域策略限制，而Postman没有这个限制');
+                log('4. 请确保Postman和浏览器使用相同的请求参数格式');
+                
+                // 提供一个修正后的请求测试按钮
+                const修正后的请求 = {
+                    method: postmanRequest.method || 'POST',
+                    headers: {
+                        ...postmanRequest.headers,
+                        'Accept': 'application/json; charset=utf-8',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(postmanRequest.body)
+                };
+                
+                log('\n建议测试的修正后请求选项:');
+                log(JSON.stringify(修正后的请求, null, 2));
+                
+            } catch (error) {
+                log(`解析Postman请求配置失败: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

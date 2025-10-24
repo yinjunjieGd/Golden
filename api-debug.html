@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API调试工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .log-container {
+            margin-top: 20px;
+            background-color: #2d2d2d;
+            color: #f0f0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: #ff6b6b;
+        }
+        .success {
+            color: #51cf66;
+        }
+        .info {
+            color: #339af0;
+        }
+        .debug {
+            color: #adb5bd;
+        }
+    </style>
+    <!-- 百度统计代码 -->
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?3c42a9591e8e6640a316449e8ee7af2c";
+          var s = document.getElementsByTagName("script")[0]; 
+          s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>API调用调试工具</h1>
+        
+        <div class="input-group">
+            <label for="userId">用户ID (整数):</label>
+            <input type="text" id="userId" value="1" placeholder="请输入用户ID">
+        </div>
+        
+        <div class="input-group">
+            <label for="courseId">课程ID (整数):</label>
+            <input type="text" id="courseId" value="1" placeholder="请输入课程ID">
+        </div>
+        
+        <button onclick="testQueryStudyPlan()">测试查询学习计划</button>
+        <button onclick="testGenerateStudyPlan()">测试生成学习计划</button>
+        <button onclick="clearLog()">清空日志</button>
+        
+        <div class="log-container" id="logContainer"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://pm-feel666service.gaodun.com';
+        const logContainer = document.getElementById('logContainer');
+        
+        // 日志记录函数
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // 同时在控制台输出
+            switch(type) {
+                case 'error':
+                    console.error(message);
+                    break;
+                case 'success':
+                    console.log('%c' + message, 'color: #51cf66');
+                    break;
+                case 'info':
+                    console.log('%c' + message, 'color: #339af0');
+                    break;
+                case 'debug':
+                    console.log('%c' + message, 'color: #adb5bd');
+                    break;
+                default:
+                    console.log(message);
+            }
+        }
+        
+        // 清空日志
+        function clearLog() {
+            logContainer.innerHTML = '';
+            log('日志已清空');
+        }
+        
+        // 测试查询学习计划接口
+        async function testQueryStudyPlan() {
+            clearLog();
+            log('开始测试查询学习计划接口...', 'info');
+            
+            try {
+                // 获取输入参数
+                const userIdStr = document.getElementById('userId').value;
+                const courseIdStr = document.getElementById('courseId').value;
+                
+                // 验证并转换参数类型
+                if (!userIdStr || !courseIdStr) {
+                    throw new Error('用户ID和课程ID不能为空');
+                }
+                
+                const userId = parseInt(userIdStr, 10);
+                const courseId = parseInt(courseIdStr, 10);
+                
+                if (isNaN(userId) || isNaN(courseId)) {
+                    throw new Error('用户ID和课程ID必须是有效的整数');
+                }
+                
+                log(`输入参数: userId=${userId} (类型: ${typeof userId}), courseId=${courseId} (类型: ${typeof courseId})`, 'debug');
+                
+                // 构建API URL
+                const apiUrl = `${API_BASE_URL}/api/study-plan/query`;
+                log(`请求URL: ${apiUrl}`, 'debug');
+                
+                // 准备请求数据
+                const requestData = { userId, courseId };
+                log(`请求数据: ${JSON.stringify(requestData)}`, 'debug');
+                
+                // 创建请求选项
+                const requestOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json; charset=utf-8',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(requestData)
+                };
+                
+                // 添加CORS相关的日志信息
+                log('请求选项包含credentials: include，这将包含cookies和认证信息', 'debug');
+                
+                // 发送请求
+                log('开始发送请求...', 'info');
+                const startTime = Date.now();
+                const response = await fetch(apiUrl, requestOptions);
+                const endTime = Date.now();
+                log(`请求完成，耗时: ${endTime - startTime}ms，状态码: ${response.status}`, 'info');
+                
+                // 打印响应头
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+                log(`响应头: ${JSON.stringify(headers, null, 2)}`, 'debug');
+                
+                // 检查响应状态
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP错误: 状态码=${response.status}, 响应内容=${errorText}`);
+                }
+                
+                // 解析响应数据
+                const data = await response.json();
+                log(`响应数据: ${JSON.stringify(data, null, 2)}`, 'success');
+                log('查询学习计划接口测试成功！', 'success');
+                
+            } catch (error) {
+                log(`测试失败: ${error.message}`, 'error');
+                log(`错误详情: ${error.stack}`, 'error');
+            }
+        }
+        
+        // 测试生成学习计划接口
+        async function testGenerateStudyPlan() {
+            clearLog();
+            log('开始测试生成学习计划接口...', 'info');
+            
+            try {
+                // 获取输入参数
+                const userIdStr = document.getElementById('userId').value;
+                const courseIdStr = document.getElementById('courseId').value;
+                
+                // 验证并转换参数类型
+                if (!userIdStr || !courseIdStr) {
+                    throw new Error('用户ID和课程ID不能为空');
+                }
+                
+                const userId = parseInt(userIdStr, 10);
+                const courseId = parseInt(courseIdStr, 10);
+                
+                if (isNaN(userId) || isNaN(courseId)) {
+                    throw new Error('用户ID和课程ID必须是有效的整数');
+                }
+                
+                log(`输入参数: userId=${userId} (类型: ${typeof userId}), courseId=${courseId} (类型: ${typeof courseId})`, 'debug');
+                
+                // 构建API URL
+                const apiUrl = `${API_BASE_URL}/api/study-plan/generate`;
+                log(`请求URL: ${apiUrl}`, 'debug');
+                
+                // 准备请求数据
+                const requestData = { userId, courseId };
+                log(`请求数据: ${JSON.stringify(requestData)}`, 'debug');
+                
+                // 创建请求选项
+                const requestOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json; charset=utf-8',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(requestData)
+                };
+                
+                // 添加CORS相关的日志信息
+                log('请求选项包含credentials: include，这将包含cookies和认证信息', 'debug');
+                
+                // 发送请求
+                log('开始发送请求...', 'info');
+                const startTime = Date.now();
+                const response = await fetch(apiUrl, requestOptions);
+                const endTime = Date.now();
+                log(`请求完成，耗时: ${endTime - startTime}ms，状态码: ${response.status}`, 'info');
+                
+                // 打印响应头
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+                log(`响应头: ${JSON.stringify(headers, null, 2)}`, 'debug');
+                
+                // 检查响应状态
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP错误: 状态码=${response.status}, 响应内容=${errorText}`);
+                }
+                
+                // 解析响应数据
+                const data = await response.json();
+                log(`响应数据: ${JSON.stringify(data, null, 2)}`, 'success');
+                log('生成学习计划接口测试成功！', 'success');
+                
+            } catch (error) {
+                log(`测试失败: ${error.message}`, 'error');
+                log(`错误详情: ${error.stack}`, 'error');
+            }
+        }
+        
+        // 页面加载时输出调试信息
+        window.onload = function() {
+            log('API调试工具已加载，请输入用户ID和课程ID并点击测试按钮', 'info');
+            log(`API基础URL: ${API_BASE_URL}`, 'debug');
+        };
+    </script>
+</body>
+</html>

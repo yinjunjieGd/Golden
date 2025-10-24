@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习计划API测试工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+    <!-- 百度统计代码 -->
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?407119d763a730fc49e032663c40363c";
+          var s = document.getElementsByTagName("script")[0]; 
+          s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>学习计划API测试工具</h1>
+        
+        <div class="form-group">
+            <label for="userId">用户ID:</label>
+            <input type="text" id="userId" value="123" placeholder="请输入用户ID">
+        </div>
+        
+        <div class="form-group">
+            <label for="courseId">课程ID:</label>
+            <input type="text" id="courseId" value="456" placeholder="请输入课程ID">
+        </div>
+        
+        <button onclick="testQueryStudyPlan()">测试查询学习计划</button>
+        <button onclick="testGenerateStudyPlan()">测试生成学习计划</button>
+        
+        <div class="response">
+            <h3>请求和响应详情:</h3>
+            <pre id="responseText">请点击上方按钮开始测试...</pre>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE_URL = 'https://pm-feel666service.gaodun.com';
+        
+        function log(message, type = 'info') {
+            const responseText = document.getElementById('responseText');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            if (type === 'error') {
+                responseText.innerHTML += `<span class="error">[${timestamp}] ERROR: ${message}</span>\n`;
+            } else if (type === 'success') {
+                responseText.innerHTML += `<span class="success">[${timestamp}] SUCCESS: ${message}</span>\n`;
+            } else {
+                responseText.innerHTML += `[${timestamp}] ${message}\n`;
+            }
+            
+            responseText.scrollTop = responseText.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('responseText').innerHTML = '';
+        }
+        
+        async function testQueryStudyPlan() {
+            clearLog();
+            log('开始测试查询学习计划接口...');
+            
+            // 获取输入值并转换为整数类型
+            const userIdStr = document.getElementById('userId').value;
+            const courseIdStr = document.getElementById('courseId').value;
+            
+            // 转换为整数
+            const userId = parseInt(userIdStr, 10);
+            const courseId = parseInt(courseIdStr, 10);
+            
+            log(`使用参数: userId=${userId} (类型: ${typeof userId}), courseId=${courseId} (类型: ${typeof courseId})`);
+            
+            const url = `${API_BASE_URL}/api/study-plan/query`;
+            log(`请求URL: ${url}`);
+            
+            const requestOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: userId,  // 现在是整数类型
+                    courseId: courseId  // 现在是整数类型
+                }),
+                mode: 'cors'
+            };
+            
+            log('请求选项:');
+            log(JSON.stringify(requestOptions, null, 2));
+            
+            try {
+                log('发送请求...');
+                const response = await fetch(url, requestOptions);
+                
+                log(`响应状态码: ${response.status} (${response.statusText})`);
+                
+                // 打印响应头
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+                log('响应头:');
+                log(JSON.stringify(headers, null, 2));
+                
+                // 获取响应体
+                const contentType = response.headers.get('content-type');
+                log(`内容类型: ${contentType}`);
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    log('响应数据:');
+                    log(JSON.stringify(data, null, 2), response.ok ? 'success' : 'error');
+                } else {
+                    const text = await response.text();
+                    log('响应文本:', response.ok ? 'success' : 'error');
+                    log(text);
+                }
+                
+                if (!response.ok) {
+                    log(`API调用失败: HTTP ${response.status}`, 'error');
+                } else {
+                    log('API调用成功', 'success');
+                }
+                
+            } catch (error) {
+                log(`请求出错: ${error.message}`, 'error');
+                log(`错误详情: ${error.stack}`, 'error');
+            }
+        }
+        
+        async function testGenerateStudyPlan() {
+            clearLog();
+            log('开始测试生成学习计划接口...');
+            
+            // 获取输入值并转换为整数类型
+            const userIdStr = document.getElementById('userId').value;
+            const courseIdStr = document.getElementById('courseId').value;
+            
+            // 转换为整数
+            const userId = parseInt(userIdStr, 10);
+            const courseId = parseInt(courseIdStr, 10);
+            
+            log(`使用参数: userId=${userId} (类型: ${typeof userId}), courseId=${courseId} (类型: ${typeof courseId})`);
+            
+            const url = `${API_BASE_URL}/api/study-plan/generate`;
+            log(`请求URL: ${url}`);
+            
+            const requestOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: userId,  // 现在是整数类型
+                    courseId: courseId  // 现在是整数类型
+                }),
+                mode: 'cors'
+            };
+            
+            log('请求选项:');
+            log(JSON.stringify(requestOptions, null, 2));
+            
+            try {
+                log('发送请求...');
+                const response = await fetch(url, requestOptions);
+                
+                log(`响应状态码: ${response.status} (${response.statusText})`);
+                
+                // 打印响应头
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+                log('响应头:');
+                log(JSON.stringify(headers, null, 2));
+                
+                // 获取响应体
+                const contentType = response.headers.get('content-type');
+                log(`内容类型: ${contentType}`);
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    log('响应数据:');
+                    log(JSON.stringify(data, null, 2), response.ok ? 'success' : 'error');
+                } else {
+                    const text = await response.text();
+                    log('响应文本:', response.ok ? 'success' : 'error');
+                    log(text);
+                }
+                
+                if (!response.ok) {
+                    log(`API调用失败: HTTP ${response.status}`, 'error');
+                } else {
+                    log('API调用成功', 'success');
+                }
+                
+            } catch (error) {
+                log(`请求出错: ${error.message}`, 'error');
+                log(`错误详情: ${error.stack}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

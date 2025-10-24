@@ -291,8 +291,8 @@
   </script>
 </head>
 <body>
-  <!-- 返回主页按钮 -->
-  <button class="home-button" onclick="window.location.href='/'" title="返回主页">
+  <!-- 返回我的课程按钮 -->
+  <button class="home-button" onclick="window.location.href='my-courses.html'" title="返回我的课程">
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
     </svg>
@@ -358,14 +358,6 @@
             @click="goToNextQuestion"
           >
             {{ currentIndex === questions.length - 1 ? '完成测验' : '下一题' }}
-          </button>
-        </div>
-        <div class="action-buttons" style="margin-top: 10px;">
-          <button
-            class="end-btn"
-            @click="endQuiz"
-          >
-            立即结束
           </button>
         </div>
       </div>
@@ -799,14 +791,6 @@
           startTimer();
         };
 
-        // 立即结束答题
-        const endQuiz = () => {
-          if (confirm('确定要结束答题并返回主页吗？')) {
-            stopTimer();
-            window.location.href = '/';
-          }
-        };
-
         // 开始计时
         startTimer();
 
@@ -857,7 +841,6 @@
           submitAnswer,
           goToNextQuestion,
           restartQuiz,
-          endQuiz,
           isOptionSelected,
           isCorrectOption
         }

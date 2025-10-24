@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超级API调试工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .log-container {
+            margin-top: 20px;
+            background-color: #2d2d2d;
+            color: #f0f0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: #ff6b6b;
+        }
+        .success {
+            color: #51cf66;
+        }
+        .info {
+            color: #339af0;
+        }
+        .debug {
+            color: #adb5bd;
+        }
+    </style>
+    <!-- 百度统计代码 -->
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?3c42a9591e8e6640a316449e8ee7af2c";
+          var s = document.getElementsByTagName("script")[0]; 
+          s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>超级API调试工具</h1>
+        
+        <div class="input-group">
+            <label for="userId">用户ID (整数):</label>
+            <input type="text" id="userId" value="1" placeholder="请输入用户ID">
+        </div>
+        
+        <div class="input-group">
+            <label for="courseId">课程ID (整数):</label>
+            <input type="text" id="courseId" value="1" placeholder="请输入课程ID">
+        </div>
+        
+        <div class="input-group">
+            <label for="apiMethod">API方法:</label>
+            <select id="apiMethod">
+                <option value="query">查询学习计划 (/api/study-plan/query)</option>
+                <option value="generate">生成学习计划 (/api/study-plan/generate)</option>
+            </select>
+        </div>
+        
+        <div class="input-group">
+            <label for="paramType">参数类型处理方式:</label>
+            <select id="paramType">
+                <option value="parseInt">标准 parseInt 转换</option>
+                <option value="jsonTrick">JSON 序列化技巧</option>
+                <option value="directNumber">直接使用数字字面量</option>
+            </select>
+        </div>
+        
+        <button onclick="testApi()">执行API测试</button>
+        <button onclick="clearLog()">清空日志</button>
+        
+        <div class="log-container" id="logContainer"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://pm-feel666service.gaodun.com';
+        const logContainer = document.getElementById('logContainer');
+        
+        // 日志记录函数
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // 同时在控制台输出
+            switch(type) {
+                case 'error':
+                    console.error(message);
+                    break;
+                case 'success':
+                    console.log('%c' + message, 'color: #51cf66');
+                    break;
+                case 'info':
+                    console.log('%c' + message, 'color: #339af0');
+                    break;
+                case 'debug':
+                    console.log('%c' + message, 'color: #adb5bd');
+                    break;
+                default:
+                    console.log(message);
+            }
+        }
+        
+        // 清空日志
+        function clearLog() {
+            logContainer.innerHTML = '';
+            log('日志已清空');
+        }
+        
+        // 测试API函数
+        async function testApi() {
+            clearLog();
+            
+            const apiMethod = document.getElementById('apiMethod').value;
+            const paramType = document.getElementById('paramType').value;
+            
+            log(`开始测试 ${apiMethod === 'query' ? '查询' : '生成'} 学习计划接口...`, 'info');
+            log(`参数处理方式: ${getParamTypeLabel(paramType)}`, 'info');
+            
+            try {
+                // 获取输入参数
+                const userIdStr = document.getElementById('userId').value;
+                const courseIdStr = document.getElementById('courseId').value;
+                
+                // 验证参数
+                if (!userIdStr || !courseIdStr) {
+                    throw new Error('用户ID和课程ID不能为空');
+                }
+                
+                // 根据选择的处理方式准备参数
+                let requestData;
+                
+                if (paramType === 'parseInt') {
+                    // 标准parseInt转换
+                    const userId = parseInt(userIdStr, 10);
+                    const courseId = parseInt(courseIdStr, 10);
+                    
+                    if (isNaN(userId) || isNaN(courseId)) {
+                        throw new Error('用户ID和课程ID必须是有效的整数');
+                    }
+                    
+                    log(`输入参数: userId=${userId} (类型: ${typeof userId}), courseId=${courseId} (类型: ${typeof courseId})`, 'debug');
+                    requestData = { userId, courseId };
+                }
+                else if (paramType === 'jsonTrick') {
+                    // JSON序列化技巧 - 有时候能解决类型转换问题
+                    const userId = parseInt(userIdStr, 10);
+                    const courseId = parseInt(courseIdStr, 10);
+                    
+                    if (isNaN(userId) || isNaN(courseId)) {
+                        throw new Error('用户ID和课程ID必须是有效的整数');
+                    }
+                    
+                    // 使用JSON.parse(JSON.stringify())技巧
+                    const tempObj = { userId, courseId };
+                    const jsonString = JSON.stringify(tempObj);
+                    requestData = JSON.parse(jsonString);
+                    
+                    log(`使用JSON序列化技巧处理后: userId=${requestData.userId} (类型: ${typeof requestData.userId}), courseId=${requestData.courseId} (类型: ${typeof requestData.courseId})`, 'debug');
+                }
+                else if (paramType === 'directNumber') {
+                    // 直接使用数字字面量（绕过任何可能的字符串转换）
+                    const userIdNum = parseInt(userIdStr, 10);
+                    const courseIdNum = parseInt(courseIdStr, 10);
+                    
+                    if (isNaN(userIdNum) || isNaN(courseIdNum)) {
+                        throw new Error('用户ID和课程ID必须是有效的整数');
+                    }
+                    
+                    // 创建一个特殊的构造函数来确保参数是数字
+                    function createNumberParamObj(userId, courseId) {
+                        this.userId = userId;
+                        this.courseId = courseId;
+                    }
+                    
+                    requestData = new createNumberParamObj(userIdNum, courseIdNum);
+                    log(`使用数字字面量: userId=${requestData.userId} (类型: ${typeof requestData.userId}), courseId=${requestData.courseId} (类型: ${typeof requestData.courseId})`, 'debug');
+                }
+                
+                // 构建API URL
+                const apiUrl = `${API_BASE_URL}/api/study-plan/${apiMethod}`;
+                log(`请求URL: ${apiUrl}`, 'debug');
+                
+                // 序列化请求数据并检查结果
+                const requestDataString = JSON.stringify(requestData);
+                log(`序列化后的请求数据: ${requestDataString}`, 'debug');
+                
+                // 检查序列化后的类型
+                const parsedBack = JSON.parse(requestDataString);
+                log(`反序列化后类型检查: userId=${parsedBack.userId} (类型: ${typeof parsedBack.userId}), courseId=${parsedBack.courseId} (类型: ${typeof parsedBack.courseId})`, 'debug');
+                
+                // 创建请求选项
+                const requestOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json; charset=utf-8',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: requestDataString
+                };
+                
+                log('请求选项:', 'debug');
+                log(JSON.stringify(requestOptions, null, 2), 'debug');
+                
+                // 发送请求
+                log('开始发送请求...', 'info');
+                const startTime = Date.now();
+                
+                // 使用XMLHttpRequest替代fetch，以提供更多控制选项
+                const response = await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', apiUrl, true);
+                    xhr.setRequestHeader('Accept', 'application/json; charset=utf-8');
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    
+                    // 配置withCredentials以包含cookies
+                    xhr.withCredentials = true;
+                    
+                    xhr.onload = function() {
+                        if (this.status >= 200 && this.status < 300) {
+                            resolve({ 
+                                status: this.status, 
+                                statusText: this.statusText, 
+                                headers: parseHeaders(this.getAllResponseHeaders()),
+                                text: () => Promise.resolve(this.responseText),
+                                json: () => Promise.resolve(JSON.parse(this.responseText))
+                            });
+                        } else {
+                            reject({ 
+                                status: this.status, 
+                                statusText: this.statusText,
+                                responseText: this.responseText
+                            });
+                        }
+                    };
+                    
+                    xhr.onerror = function() {
+                        reject(new Error('网络错误'));
+                    };
+                    
+                    xhr.send(requestDataString);
+                });
+                
+                const endTime = Date.now();
+                log(`请求完成，耗时: ${endTime - startTime}ms，状态码: ${response.status}`, 'info');
+                
+                // 打印响应头
+                log(`响应头: ${JSON.stringify(response.headers, null, 2)}`, 'debug');
+                
+                // 获取响应内容
+                let responseData;
+                try {
+                    responseData = await response.json();
+                    log(`响应数据: ${JSON.stringify(responseData, null, 2)}`, 'success');
+                } catch (e) {
+                    const text = await response.text();
+                    log(`响应文本: ${text}`, 'debug');
+                }
+                
+                log(`${apiMethod === 'query' ? '查询' : '生成'}学习计划接口测试成功！`, 'success');
+                
+            } catch (error) {
+                log(`测试失败: ${error.message}`, 'error');
+                if (error.status) {
+                    log(`HTTP状态码: ${error.status}`, 'error');
+                    log(`响应内容: ${error.responseText}`, 'error');
+                }
+                log(`错误详情: ${error.stack}`, 'error');
+            }
+        }
+        
+        // 辅助函数：获取参数类型标签
+        function getParamTypeLabel(type) {
+            switch(type) {
+                case 'parseInt': return '标准 parseInt 转换';
+                case 'jsonTrick': return 'JSON 序列化技巧';
+                case 'directNumber': return '直接使用数字字面量';
+                default: return type;
+            }
+        }
+        
+        // 辅助函数：解析响应头
+        function parseHeaders(headersString) {
+            const headers = {};
+            const headerPairs = headersString.split('\r\n');
+            
+            for (let i = 0; i < headerPairs.length; i++) {
+                const headerPair = headerPairs[i];
+                // 跳过空行
+                if (headerPair.length === 0) continue;
+                
+                const index = headerPair.indexOf(':');
+                if (index > 0) {
+                    const key = headerPair.substring(0, index).trim();
+                    const value = headerPair.substring(index + 1).trim();
+                    headers[key] = value;
+                }
+            }
+            
+            return headers;
+        }
+        
+        // 页面加载时输出调试信息
+        window.onload = function() {
+            log('超级API调试工具已加载，支持多种参数处理方式', 'info');
+            log(`API基础URL: ${API_BASE_URL}`, 'debug');
+            log('请尝试不同的参数处理方式以解决类型转换问题', 'info');
+        };
+    </script>
+</body>
+</html>
