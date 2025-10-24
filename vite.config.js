@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://pm-feel666.gaodun.com',
+        target: 'https://pm-feel666service.gaodun.com',
         changeOrigin: true,
         secure: false
       }
@@ -36,7 +36,7 @@ export default defineConfig({
   preview: {
     proxy: {
       '/api': {
-        target: 'https://pm-feel666.gaodun.com',
+        target: 'https://pm-feel666service.gaodun.com',
         changeOrigin: true,
         secure: false
       }

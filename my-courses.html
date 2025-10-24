@@ -681,7 +681,7 @@
     createApp({
       setup() {
         // 接口地址配置 - 硬编码
-        const API_BASE_URL = 'https://pm-feel666.gaodun.com';
+        const API_BASE_URL = 'https://pm-feel666service.gaodun.com';
         
         console.log('=== API配置信息 ===');
         console.log('API_BASE_URL:', API_BASE_URL);
@@ -752,7 +752,7 @@
             
             console.log('接口响应状态:', response.status);
             console.log('响应头Content-Type:', response.headers.get('content-type'));
-            
+            console.log('接口响应数据', response);
             if (!response.ok) {
               const errorText = await response.text();
               console.error('接口返回错误内容:', errorText);
