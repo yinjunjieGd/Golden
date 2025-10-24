@@ -48,7 +48,7 @@ A comprehensive tool for testing the study plan API
 
 ## Important Notes
 
-- The API tester uses the development API endpoint: `http://localhost:8089`
+- The API tester uses the development API endpoint: `https://pm-feel666.gaodun.com`
 - Ensure you have a stable internet connection
 - The logs will show detailed information about request parameters, headers, and responses
 - If you encounter CORS issues, check the browser console for more details

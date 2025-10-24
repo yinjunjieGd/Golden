@@ -681,7 +681,7 @@
     createApp({
       setup() {
         // 接口地址配置 - 硬编码
-        const API_BASE_URL = 'http://localhost:8089';
+        const API_BASE_URL = 'https://pm-feel666.gaodun.com';
         
         console.log('=== API配置信息 ===');
         console.log('API_BASE_URL:', API_BASE_URL);
@@ -1576,8 +1576,13 @@
           console.log('接口返回的数据类型:', typeof imageBase64);
           console.log('接口返回的数据长度:', imageBase64.length);
           
+          // 检查返回数据是否为空或null
+          if (imageBase64 === null || imageBase64 === undefined || imageBase64 === '') {
+            throw new Error('尚未学习，未生成知识图谱');
+          }
+          
           // 检查返回数据是否有效
-          if (imageBase64 && typeof imageBase64 === 'string' && imageBase64.length > 0) {
+          if (typeof imageBase64 === 'string' && imageBase64.length > 0) {
             // 创建图片URL并显示
             // 确保base64编码没有前缀，如果有则移除
             let cleanBase64 = imageBase64;

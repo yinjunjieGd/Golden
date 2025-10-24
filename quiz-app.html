@@ -11,6 +11,38 @@
       padding: 0;
       box-sizing: border-box;
     }
+    
+    /* 进度条样式 */
+    .progress-container {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 10px;
+      background-color: #e9ecef;
+      border-radius: 5px;
+      margin: 10px 0;
+      position: relative;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      transition: width 0.3s ease;
+      position: relative;
+    }
+    
+    .progress-head {
+      position: absolute;
+      top: 50%;
+      width: 32px;
+      height: 32px;
+      background-image: url('src/c4cbb499-ea11-4852-b43c-9a063624a3f0.gif');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -323,6 +355,12 @@
           <span class="score-display">得分: {{ score }}</span>
         </div>
         
+        <!-- 进度条 -->
+        <div class="progress-container">
+          <div class="progress-bar" :style="{ width: progressPercentage + '%' }"></div>
+          <div class="progress-head" :style="{ left: 'calc(' + progressPercentage + '% - 16px)', transform: 'translateY(-50%)' }"></div>
+        </div>
+        
         <div class="question-type-badge">
           {{ currentQuestion.type === 'single_choice' ? '单选题' : '多选题' }}
         </div>
@@ -518,8 +556,14 @@
 
         const questions = ref([]);
         const mounted = ref(false);
+        
+        // 计算进度百分比
+          const progressPercentage = computed(() => {
+            if (questions.value.length === 0) return 0;
+            return (currentIndex.value / questions.value.length) * 100;
+          });
 
-        const currentIndex = ref(0);
+          const currentIndex = ref(0);
         // 单选题：字符串（如'A'）；多选题：数组（如['A', 'B']）
         const selectedOption = ref(null);
         const submitted = ref(false);
@@ -837,6 +881,7 @@
           timeSpent,
           isAutoSwitching,
           currentQuestion,
+          progressPercentage,
           selectOption,
           submitAnswer,
           goToNextQuestion,
