@@ -1,52 +1,10 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { resolve } from 'path'
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => {
-  // 加载环境变量
-  const env = loadEnv(mode, process.cwd())
-  
-  return {
-  plugins: [
-    vue(),
-    // 自定义插件:替换config.js中的环境变量占位符
-    {
-      name: 'replace-env-in-config',
-      // 开发环境:通过中间件动态生成config.js
-      configureServer(server) {
-        server.middlewares.use((req, res, next) => {
-          if (req.url === '/config.js') {
-            res.setHeader('Content-Type', 'application/javascript')
-            res.end(`// 全局配置\nwindow.__APP_CONFIG__ = {\n  API_BASE_URL: '${env.VITE_API_BASE_URL || ''}'\n};`)
-            return
-          }
-          next()
-        })
-      },
-      // 生产环境:在构建完成后替换config.js中的占位符
-      async closeBundle() {
-        const fs = await import('fs')
-        const path = await import('path')
-        const configPath = path.resolve(__dirname, 'dist/config.js')
-        
-        // 检查文件是否存在
-        if (fs.existsSync(configPath)) {
-          // 读取文件内容
-          let content = fs.readFileSync(configPath, 'utf-8')
-          // 替换占位符
-          content = content.replace(
-            '__VITE_API_BASE_URL__',
-            env.VITE_API_BASE_URL || ''
-          )
-          // 写回文件
-          fs.writeFileSync(configPath, content, 'utf-8')
-          console.log('✅ config.js 环境变量替换成功:', env.VITE_API_BASE_URL || '(空字符串)')
-        } else {
-          console.warn('⚠️  未找到 dist/config.js 文件')
-        }
-      }
-    }
-  ],
+export default defineConfig({
+  plugins: [vue()],
   server: {
     proxy: {
       '/api': {
@@ -58,6 +16,15 @@ export default defineConfig(({ mode }) => {
   },
   // 生产环境配置
   build: {
+    // 多页面配置
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        quiz: resolve(__dirname, 'quiz-app.html'),
+        courses: resolve(__dirname, 'my-courses.html'),
+        home: resolve(__dirname, 'home-app.html')
+      }
+    },
     // 确保打包后的资源路径正确
     assetsDir: 'assets',
     // 生成source map方便调试
@@ -74,6 +41,5 @@ export default defineConfig(({ mode }) => {
         secure: false
       }
     }
-  }
   }
 })

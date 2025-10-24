@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>我的课程 - 智能学习平台</title>
-  <script src="/config.js"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <style>
     * {
@@ -472,18 +471,12 @@
 
     createApp({
       setup() {
-        // 接口地址配置 - 从全局配置读取
-        // 开发环境: 使用空字符串,通过Vite代理转发
-        // 生产环境: 使用.env.production中配置的后端域名
-        const API_BASE_URL = window.__APP_CONFIG__?.API_BASE_URL || '';
+        // 接口地址配置 - 硬编码
+        const API_BASE_URL = 'https://pm-feel666service.gaodun.com';
         
         console.log('=== API配置信息 ===');
-        console.log('API_BASE_URL:', API_BASE_URL || '(空字符串-使用相对路径)');
-        console.log('当前环境:', API_BASE_URL ? '生产环境' : '开发环境(通过Vite代理)');
+        console.log('API_BASE_URL:', API_BASE_URL);
         console.log('==================');
-        
-        // 部署验证: 显示实际使用的API地址
-        alert(`当前API配置:\nAPI_BASE_URL: ${API_BASE_URL || '(空字符串-使用相对路径)'}\n环境: ${API_BASE_URL ? '生产环境' : '开发环境'}\n\n示例接口:\n${API_BASE_URL}/api/course/getDefaultCourses`);
         
         const courses = ref([]);
         const loading = ref(true);
