@@ -397,7 +397,10 @@
         // 生产环境: 使用.env.production中配置的后端域名
         const API_BASE_URL = window.__APP_CONFIG__?.API_BASE_URL || '';
         
-        console.log('接口地址:', API_BASE_URL || '使用相对路径');
+        console.log('=== API配置信息 ===');
+        console.log('API_BASE_URL:', API_BASE_URL || '(空字符串-使用相对路径)');
+        console.log('当前环境:', API_BASE_URL ? '生产环境' : '开发环境(通过Vite代理)');
+        console.log('==================');
 
         // 生成考试ID: userId + 时间戳 + 随机字符 (不超过30字节)
         const generateExamId = () => {
@@ -435,10 +438,13 @@
               startTime: now.toISOString(),  // 先尝试使用标准UTC格式
               status: 2  // 默认状态为2,表示答题中
             };
-            console.log('创建记录请求数据:', requestData);
+            const createRecordUrl = `${API_BASE_URL}/api/answer-records/insert`;
+            console.log('📡 [API调用] 创建考试记录');
+            console.log('请求URL:', createRecordUrl);
+            console.log('请求数据:', requestData);
             console.log('startTime格式:', requestData.startTime);
             
-            const response = await fetch(`${API_BASE_URL}/api/answer-records/insert`, {
+            const response = await fetch(createRecordUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -711,9 +717,12 @@
               timeSpent: timeSpent,  // 添加消耗时间字段
               status: 1  // 1表示已完成
             };
-            console.log('更新记录请求数据:', updateData);
+            const updateRecordUrl = `${API_BASE_URL}/api/answer-records/update`;
+            console.log('📡 [API调用] 更新答题记录');
+            console.log('请求URL:', updateRecordUrl);
+            console.log('请求数据:', updateData);
             
-            const response = await fetch(`${API_BASE_URL}/api/answer-records/update`, {
+            const response = await fetch(updateRecordUrl, {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json'

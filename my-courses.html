@@ -477,6 +477,11 @@
         // 生产环境: 使用.env.production中配置的后端域名
         const API_BASE_URL = window.__APP_CONFIG__?.API_BASE_URL || '';
         
+        console.log('=== API配置信息 ===');
+        console.log('API_BASE_URL:', API_BASE_URL || '(空字符串-使用相对路径)');
+        console.log('当前环境:', API_BASE_URL ? '生产环境' : '开发环境(通过Vite代理)');
+        console.log('==================');
+        
         const courses = ref([]);
         const loading = ref(true);
         const error = ref(null);
@@ -526,9 +531,12 @@
           error.value = null;
 
           try {
-            console.log('开始获取课程数据...');
+            const courseUrl = `${API_BASE_URL}/api/course/getDefaultCourses`;
+            console.log('📡 [API调用] 获取课程列表');
+            console.log('请求URL:', courseUrl);
+            
             // 调用课程查询接口
-            const response = await fetch(`${API_BASE_URL}/api/course/getDefaultCourses`, {
+            const response = await fetch(courseUrl, {
               method: 'GET',
               headers: {
                 'Accept': 'application/json; charset=utf-8'
